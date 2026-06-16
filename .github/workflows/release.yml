@@ -28,16 +28,22 @@ jobs:
 
       - name: Build plugin zip
         run: |
+          set -e
           mkdir -p build/sermon-suite
-          rsync -a --exclude='.git' \
-                   --exclude='.github' \
-                   --exclude='build' \
-                   --exclude='.gitignore' \
-                   --exclude='*.md' \
-                   ./ build/sermon-suite/
+          for item in *; do
+            case "$item" in
+              build) ;;
+              *) cp -r "$item" build/sermon-suite/ ;;
+            esac
+          done
+          rm -rf build/sermon-suite/.git
+          rm -rf build/sermon-suite/.github
+          rm -f  build/sermon-suite/.gitignore
+          rm -f  build/sermon-suite/*.md
           cd build
           zip -r sermon-suite.zip sermon-suite -q
-          echo "Built build/sermon-suite.zip"
+          echo "=== Built zip contents ==="
+          unzip -l sermon-suite.zip | head -20
 
       - name: Attach zip to the GitHub Release
         uses: softprops/action-gh-release@v2
