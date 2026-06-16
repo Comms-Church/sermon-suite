@@ -118,6 +118,18 @@ function ss_register_gutenberg_blocks() {
             'count'    => [ 'type' => 'integer', 'default' => 4 ],
         ],
     ]);
+
+    register_block_type( 'sermon-suite/topics', [
+        'editor_script'   => 'sermon-suite-blocks',
+        'editor_style'    => 'sermon-suite-blocks-editor',
+        'render_callback' => 'ss_block_render_topics',
+        'attributes'      => [
+            'columns'   => [ 'type' => 'integer', 'default' => 4 ],
+            'minCount'  => [ 'type' => 'integer', 'default' => 1 ],
+            'showCount' => [ 'type' => 'boolean', 'default' => true ],
+            'orderby'   => [ 'type' => 'string',  'default' => 'count' ],
+        ],
+    ]);
 }
 
 // ── Block render callbacks (delegate to shortcodes) ───────────────────────────
@@ -157,4 +169,12 @@ function ss_block_render_related( $attrs ) {
     $count = (int)($attrs['count']    ?? 4);
     if ( ! $id ) return '<p style="padding:16px;background:#f8f9fa;border-radius:6px;color:#666;">Select a sermon in the block settings →</p>';
     return do_shortcode( "[ss_related_sermons id=\"{$id}\" count=\"{$count}\"]" );
+}
+
+function ss_block_render_topics( $attrs ) {
+    $cols       = (int)($attrs['columns']  ?? 4);
+    $min        = (int)($attrs['minCount'] ?? 1);
+    $show_count = ($attrs['showCount'] ?? true) ? 'true' : 'false';
+    $orderby    = in_array(($attrs['orderby'] ?? 'count'), ['count','name'], true) ? $attrs['orderby'] : 'count';
+    return do_shortcode( "[ss_topics columns=\"{$cols}\" min_count=\"{$min}\" show_count=\"{$show_count}\" orderby=\"{$orderby}\"]" );
 }

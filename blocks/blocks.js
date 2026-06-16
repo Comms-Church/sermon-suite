@@ -298,6 +298,61 @@
         save: function() { return null; }
     });
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // BLOCK 6: Browse by Topic (directory)
+    // ══════════════════════════════════════════════════════════════════════════
+    blocks.registerBlockType( 'sermon-suite/topics', {
+        title:       'Browse by Topic',
+        description: 'A directory grid of all topics. Visitors click a topic to see every sermon on it.',
+        category:    CATEGORY,
+        icon:        ssIcon(),
+        keywords:    [ 'topics', 'browse', 'directory', 'tags', 'subjects' ],
+        attributes: {
+            columns:   { type: 'integer', default: 4 },
+            minCount:  { type: 'integer', default: 1 },
+            showCount: { type: 'boolean', default: true },
+            orderby:   { type: 'string',  default: 'count' },
+        },
+        edit: function( props ) {
+            var attrs = props.attributes;
+            var set   = props.setAttributes;
+            return el( Fragment, null,
+                el( InspectorControls, null,
+                    el( PanelBody, { title: 'Directory Settings', initialOpen: true },
+                        el( RangeControl, {
+                            label: 'Columns',
+                            value: attrs.columns,
+                            min: 2, max: 6,
+                            onChange: function(v){ set({ columns: v }); }
+                        }),
+                        el( SelectControl, {
+                            label: 'Order by',
+                            value: attrs.orderby,
+                            options: [
+                                { value: 'count', label: 'Most sermons first' },
+                                { value: 'name',  label: 'Alphabetical' },
+                            ],
+                            onChange: function(v){ set({ orderby: v }); }
+                        }),
+                        el( RangeControl, {
+                            label: 'Minimum sermons to show',
+                            value: attrs.minCount,
+                            min: 1, max: 10,
+                            onChange: function(v){ set({ minCount: v }); }
+                        }),
+                        el( ToggleControl, {
+                            label: 'Show sermon count on each topic',
+                            checked: attrs.showCount,
+                            onChange: function(v){ set({ showCount: v }); }
+                        })
+                    )
+                ),
+                el( SSR, { block: 'sermon-suite/topics', attributes: attrs } )
+            );
+        },
+        save: function() { return null; }
+    });
+
 }(
     window.wp.blocks,
     window.wp.element,

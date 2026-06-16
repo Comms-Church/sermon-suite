@@ -196,6 +196,8 @@ function ss_render_sermon_editor() {
     $yt_synced  = $is_edit ? get_post_meta($post_id,'_ss_yt_synced', true) : '';
     $topics     = $is_edit ? implode(', ', wp_get_post_terms($post_id,'ss_topic',  ['fields'=>'names'])) : '';
     $speakers   = $is_edit ? implode(', ', wp_get_post_terms($post_id,'ss_speaker',['fields'=>'names'])) : '';
+    $topic_ids   = $is_edit ? wp_get_post_terms($post_id,'ss_topic',  ['fields'=>'ids']) : [];
+    $speaker_ids = $is_edit ? wp_get_post_terms($post_id,'ss_speaker',['fields'=>'ids']) : [];
 
     $all_series   = get_posts(['post_type'=>'ss_series','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'any']);
     $all_topics   = get_terms(['taxonomy'=>'ss_topic',  'hide_empty'=>false,'orderby'=>'name']);
@@ -385,30 +387,47 @@ function ss_render_sermon_editor() {
                 <div class="gcc-sidebar-card">
                     <div class="gcc-sidebar-card-header">🏷 People & Topics</div>
                     <div class="gcc-sidebar-card-body">
+
+                        <!-- Speakers -->
                         <div class="gcc-field">
-                            <label class="gcc-label">Speaker(s) <span class="gcc-label-hint">comma-separated</span></label>
-                            <input type="text" id="gcc-speakers" class="gcc-input"
-                                   value="<?php echo esc_attr($speakers); ?>" placeholder="Mike Sigman" />
-                            <?php if (!empty($all_speakers)): ?>
-                            <div class="gcc-suggestions">
+                            <label class="gcc-label">Speaker(s)</label>
+                            <div class="gcc-pick-list" id="gcc-speaker-list">
                                 <?php foreach ($all_speakers as $sp): ?>
-                                <span class="gcc-chip" data-for="gcc-speakers" data-val="<?php echo esc_attr($sp->name); ?>"><?php echo esc_html($sp->name); ?></span>
+                                <label class="gcc-pick-item">
+                                    <input type="checkbox" class="gcc-pick-speaker"
+                                           value="<?php echo esc_attr($sp->name); ?>"
+                                           <?php checked(in_array($sp->term_id, $speaker_ids), true); ?> />
+                                    <span><?php echo esc_html($sp->name); ?></span>
+                                </label>
                                 <?php endforeach; ?>
                             </div>
-                            <?php endif; ?>
+                            <div class="gcc-add-new-row">
+                                <input type="text" id="gcc-new-speaker" class="gcc-input" placeholder="Add a new speaker…" />
+                                <button type="button" class="gcc-add-new-btn" id="gcc-add-speaker">+ Add</button>
+                            </div>
+                            <input type="hidden" id="gcc-speakers" value="<?php echo esc_attr($speakers); ?>" />
                         </div>
+
+                        <!-- Topics -->
                         <div class="gcc-field">
-                            <label class="gcc-label">Topics <span class="gcc-label-hint">comma-separated</span></label>
-                            <input type="text" id="gcc-topics" class="gcc-input"
-                                   value="<?php echo esc_attr($topics); ?>" placeholder="Prayer, Faith" />
-                            <?php if (!empty($all_topics)): ?>
-                            <div class="gcc-suggestions">
+                            <label class="gcc-label">Topics</label>
+                            <div class="gcc-pick-list" id="gcc-topic-list">
                                 <?php foreach ($all_topics as $t): ?>
-                                <span class="gcc-chip" data-for="gcc-topics" data-val="<?php echo esc_attr($t->name); ?>"><?php echo esc_html($t->name); ?></span>
+                                <label class="gcc-pick-item">
+                                    <input type="checkbox" class="gcc-pick-topic"
+                                           value="<?php echo esc_attr($t->name); ?>"
+                                           <?php checked(in_array($t->term_id, $topic_ids), true); ?> />
+                                    <span><?php echo esc_html($t->name); ?></span>
+                                </label>
                                 <?php endforeach; ?>
                             </div>
-                            <?php endif; ?>
+                            <div class="gcc-add-new-row">
+                                <input type="text" id="gcc-new-topic" class="gcc-input" placeholder="Add a new topic…" />
+                                <button type="button" class="gcc-add-new-btn" id="gcc-add-topic">+ Add</button>
+                            </div>
+                            <input type="hidden" id="gcc-topics" value="<?php echo esc_attr($topics); ?>" />
                         </div>
+
                     </div>
                 </div>
 
@@ -518,13 +537,35 @@ function ss_render_sermon_editor() {
             if (ref) $('#gcc-scr-url').val('https://www.biblegateway.com/passage/?search='+encodeURIComponent(ref)+'&version='+bibleVer);
         });
 
-        // Chip suggestions
-        $(document).on('click','.gcc-chip', function(){
-            var target = '#'+$(this).data('for');
-            var val    = $(this).data('val');
-            var parts  = ($(target).val().trim()||'').split(',').map(s=>s.trim()).filter(Boolean);
-            if (!parts.includes(val)) { parts.push(val); $(target).val(parts.join(', ')); }
-        });
+        // ── Speakers & Topics: keep hidden inputs in sync with checkboxes ──
+        function syncPicks(listClass, hiddenId) {
+            var vals = [];
+            $(listClass + ':checked').each(function(){ vals.push($(this).val()); });
+            $(hiddenId).val(vals.join(', '));
+        }
+        $(document).on('change', '.gcc-pick-speaker', function(){ syncPicks('.gcc-pick-speaker', '#gcc-speakers'); });
+        $(document).on('change', '.gcc-pick-topic',   function(){ syncPicks('.gcc-pick-topic',   '#gcc-topics'); });
+
+        // Add-new speaker
+        function addPick(inputId, listId, cls, hiddenId) {
+            var name = $(inputId).val().trim();
+            if (!name) return;
+            // avoid duplicates (case-insensitive)
+            var exists = false;
+            $(cls).each(function(){ if ($(this).val().toLowerCase() === name.toLowerCase()) { exists = true; $(this).prop('checked', true); } });
+            if (!exists) {
+                var id = 'pick_' + Math.random().toString(36).substr(2,8);
+                var item = $('<label class="gcc-pick-item"><input type="checkbox" class="' + cls.substr(1) + '" value="' + name.replace(/"/g,'&quot;') + '" checked /><span>' + $('<div>').text(name).html() + '</span></label>');
+                $(listId).append(item);
+            }
+            $(inputId).val('');
+            syncPicks(cls, hiddenId);
+        }
+        $('#gcc-add-speaker').on('click', function(){ addPick('#gcc-new-speaker', '#gcc-speaker-list', '.gcc-pick-speaker', '#gcc-speakers'); });
+        $('#gcc-add-topic').on('click',   function(){ addPick('#gcc-new-topic',   '#gcc-topic-list',   '.gcc-pick-topic',   '#gcc-topics'); });
+        // Enter key adds instead of submitting
+        $('#gcc-new-speaker').on('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-speaker').click(); } });
+        $('#gcc-new-topic').on('keydown',   function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-topic').click(); } });
 
         // Resources
         $('#gcc-add-resource').on('click', function(){

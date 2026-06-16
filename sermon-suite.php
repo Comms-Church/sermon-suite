@@ -3,7 +3,7 @@
  * Plugin Name: Sermon Suite
  * Plugin URI:  https://comms.church
  * Description: A modern sermon library organized by series. Includes REST API, YouTube embed, topic filtering, scripture references, and downloadable resources. Built-in CSV importer for Series Engine migration.
- * Version:     1.3.0
+ * Version:     1.4.1
  * Author:      Comms.Church
  * License:     GPL-2.0+
  * Text Domain: sermon-suite
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'SERMON_SUITE_VERSION', '1.3.0' );
+define( 'SERMON_SUITE_VERSION', '1.4.1' );
 define( 'SERMON_SUITE_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'SERMON_SUITE_URL',     plugin_dir_url( __FILE__ ) );
 define( 'SERMON_SUITE_PREFIX',  'sermon_suite' );
@@ -75,6 +75,13 @@ function sermon_suite_output_brand_css() {
     echo "  --gcc-text-muted:   " . esc_attr($c['text_muted'])   . ";\n";
     echo "  --gcc-bg:           " . esc_attr($c['bg'])           . ";\n";
     echo "  --gcc-bg-alt:       " . esc_attr($c['bg_alt'])       . ";\n";
+
+    // Body text scale — multiplier applied to sermon copy.
+    $scale_map = [ 'small' => '0.92', 'medium' => '1', 'large' => '1.12', 'xlarge' => '1.25' ];
+    $scale_key = get_option( 'sermon_suite_text_size', 'medium' );
+    $scale     = $scale_map[ $scale_key ] ?? '1';
+    echo "  --gcc-text-scale:   " . esc_attr($scale) . ";\n";
+
     echo "}\n</style>\n";
 }
 

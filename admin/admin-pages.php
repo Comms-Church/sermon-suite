@@ -117,6 +117,9 @@ function sermon_suite_settings_page() {
         update_option('sermon_suite_archive_slug',    sanitize_title($_POST['archive_slug']           ?? 'sermons'));
         update_option('sermon_suite_yt_api_key',      sanitize_text_field($_POST['yt_api_key']        ?? ''));
         update_option('sermon_suite_page_id',         absint($_POST['sermons_page_id'] ?? 0));
+        $allowed_sizes = [ 'small', 'medium', 'large', 'xlarge' ];
+        $size_in = sanitize_key($_POST['text_size'] ?? 'medium');
+        update_option('sermon_suite_text_size', in_array($size_in, $allowed_sizes, true) ? $size_in : 'medium');
         // Brand colors — sanitize as hex
         $color_fields = [
             'sermon_suite_color_accent',
@@ -142,6 +145,7 @@ function sermon_suite_settings_page() {
     $archive_slug    = get_option('sermon_suite_archive_slug',  'sermons');
     $yt_api_key      = get_option('sermon_suite_yt_api_key',    '');
     $sermons_page_id = (int) get_option('sermon_suite_page_id', 0);
+    $text_size       = get_option('sermon_suite_text_size', 'medium');
     $all_pages       = get_posts(['post_type'=>'page','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'publish']);
     $versions = ['NIV','ESV','KJV','NLT','NASB','MSG','CSB'];
 
@@ -317,6 +321,18 @@ function sermon_suite_settings_page() {
                             <?php endforeach; ?>
                         </select>
                         <p class="description">Used when auto-generating Bible Gateway links from scripture references.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Body Text Size</th>
+                    <td>
+                        <select name="text_size">
+                            <option value="small"  <?php selected($text_size, 'small');  ?>>Small</option>
+                            <option value="medium" <?php selected($text_size, 'medium'); ?>>Medium (default)</option>
+                            <option value="large"  <?php selected($text_size, 'large');  ?>>Large</option>
+                            <option value="xlarge" <?php selected($text_size, 'xlarge'); ?>>Extra Large</option>
+                        </select>
+                        <p class="description">Scales the sermon title and body copy on the public sermon page. Font family is inherited from your theme.</p>
                     </td>
                 </tr>
                 <tr>

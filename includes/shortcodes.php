@@ -537,6 +537,60 @@ function ss_sc_message_list( $atts ) {
     return ob_get_clean();
 }
 
+// ── [ss_topics] — Browse-by-topic directory ──────────────────────────────────
+/**
+ * A grid of all topics. Clicking one goes to that topic's landing page
+ * (all sermons on that topic, across every series).
+ *
+ * Atts:
+ *   columns   = 4         grid columns
+ *   min_count = 1         only show topics with at least this many sermons
+ *   show_count= true      show the sermon count on each topic
+ *   orderby   = count     count | name
+ */
+add_shortcode( 'ss_topics', 'ss_sc_topics' );
+function ss_sc_topics( $atts ) {
+    $atts = shortcode_atts([
+        'columns'    => 4,
+        'min_count'  => 1,
+        'show_count' => 'true',
+        'orderby'    => 'count',
+    ], $atts);
+
+    $orderby = $atts['orderby'] === 'name' ? 'name' : 'count';
+    $terms = get_terms([
+        'taxonomy'   => 'ss_topic',
+        'hide_empty' => true,
+        'orderby'    => $orderby,
+        'order'      => $orderby === 'count' ? 'DESC' : 'ASC',
+    ]);
+
+    if ( is_wp_error($terms) || empty($terms) ) {
+        return '<p class="gcc-no-results">No topics yet.</p>';
+    }
+
+    $min  = max(1, (int)$atts['min_count']);
+    $cols = max(1, min(6, (int)$atts['columns']));
+    $show_count = $atts['show_count'] !== 'false';
+
+    ob_start();
+    ?>
+    <div class="ss-topics-directory ss-topics-cols-<?php echo $cols; ?>">
+        <?php foreach ($terms as $t) :
+            if ( $t->count < $min ) continue;
+        ?>
+        <a href="<?php echo esc_url(get_term_link($t)); ?>" class="ss-topic-tile">
+            <span class="ss-topic-tile-name"><?php echo esc_html($t->name); ?></span>
+            <?php if ($show_count) : ?>
+            <span class="ss-topic-tile-count"><?php echo (int)$t->count; ?></span>
+            <?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
 // ── Shared card renderer ───────────────────────────────────────────────────────
 
 function ss_render_sermon_card( $sermon_id, $style = 'list' ) {

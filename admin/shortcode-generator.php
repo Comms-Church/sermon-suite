@@ -22,6 +22,7 @@ function sermon_suite_shortcode_generator_page() {
                     <button class="gcc-sc-tab" data-tab="player">Sermon Player</button>
                     <button class="gcc-sc-tab" data-tab="related">Related Sermons</button>
                     <button class="gcc-sc-tab" data-tab="message-list">Message List</button>
+                    <button class="gcc-sc-tab" data-tab="topics">Browse by Topic</button>
                 </div>
 
                 <!-- ── Archive ── -->
@@ -280,6 +281,50 @@ function sermon_suite_shortcode_generator_page() {
                     </div>
                 </div>
 
+                <!-- ── Browse by Topic ── -->
+                <div class="gcc-sc-panel" id="gcc-tab-topics">
+                    <h3>Browse by Topic</h3>
+                    <p class="gcc-sc-desc">
+                        A directory grid of all your topics. Visitors click a topic to see
+                        every sermon on it, across all series. Great for a "Topics" page or
+                        a section on your sermons page.
+                    </p>
+                    <div class="gcc-sc-fields">
+                        <div class="gcc-sc-field">
+                            <label>Columns</label>
+                            <select data-param="columns" data-sc="ss_topics">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4" selected>4 (default)</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+                        <div class="gcc-sc-field">
+                            <label>Order by</label>
+                            <select data-param="orderby" data-sc="ss_topics">
+                                <option value="count" selected>Most sermons first (default)</option>
+                                <option value="name">Alphabetical</option>
+                            </select>
+                        </div>
+                        <div class="gcc-sc-field">
+                            <label>Show sermon count</label>
+                            <select data-param="show_count" data-sc="ss_topics">
+                                <option value="true" selected>Yes (default)</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="gcc-sc-field">
+                            <label>Minimum sermons to show a topic</label>
+                            <select data-param="min_count" data-sc="ss_topics">
+                                <option value="1" selected>1 (show all)</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
             </div><!-- .gcc-sc-picker -->
 
             <!-- ── RIGHT: output ── -->
@@ -332,6 +377,10 @@ function sermon_suite_shortcode_generator_page() {
                         <tr>
                             <td><code>[ss_message_list]</code></td>
                             <td>Flat message list — no series grouping, filterable by campus/topic/speaker</td>
+                        </tr>
+                        <tr>
+                            <td><code>[ss_topics]</code></td>
+                            <td>Browse-by-topic directory grid — each topic links to all its sermons</td>
                         </tr>
                     </table>
                 </div>
@@ -427,6 +476,7 @@ function sermon_suite_shortcode_generator_page() {
             ss_series_grid:    { columns:'3', count:'-1', featured:'false', category:'' },
             ss_sermon_player:  { id:'' },
             ss_related_sermons:{ id:'', count:'4' },
+            ss_topics:         { columns:'4', orderby:'count', show_count:'true', min_count:'1' },
         };
 
         function buildShortcode() {

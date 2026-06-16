@@ -446,3 +446,49 @@
 .gcc-sc-ref-table td { padding: 5px 3px; vertical-align: top; }
 .gcc-sc-ref-table td:first-child { white-space: nowrap; padding-right: 8px; }
 @media (max-width: 860px) { .gcc-sc-layout { flex-direction: column; } .gcc-sc-output-wrap { width: 100%; } }
+
+/* ── Pick lists (speakers / topics checkboxes + add-new) ──────── */
+.gcc-pick-list {
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid #e2e2e2;
+    border-radius: 6px;
+    padding: 6px;
+    background: #fff;
+    margin-bottom: 8px;
+}
+.gcc-pick-list:empty { display: none; }
+.gcc-pick-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #1a1a1a;
+    transition: background 0.1s;
+}
+.gcc-pick-item:hover { background: #f3f4f6; }
+.gcc-pick-item input[type="checkbox"] { margin: 0; flex-shrink: 0; }
+.gcc-pick-item span { line-height: 1.3; }
+.gcc-add-new-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.gcc-add-new-row .gcc-input { flex: 1; }
+.gcc-add-new-btn {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    background: #f0f4f9;
+    border: 1px solid #c8d8e8;
+    border-radius: 5px;
+    color: #2563eb;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+}
+.gcc-add-new-btn:hover { background: #dce8f5; border-color: #2563eb; }
