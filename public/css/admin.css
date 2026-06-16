@@ -1,0 +1,448 @@
+/* ═══════════════════════════════════════════════════════════════
+   Sermon Suite — Admin Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Force our wrapper to clear WP float context ─────────────── */
+.gcc-custom-editor {
+    max-width: 1160px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    clear: both;
+    overflow: hidden; /* establish new block formatting context */
+}
+#wpbody-content .gcc-custom-editor {
+    margin-right: 20px;
+    box-sizing: border-box;
+}
+
+/* ── Top header bar ───────────────────────────────────────────── */
+.gcc-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 16px;
+    border-bottom: 2px solid #e8e8e8;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.gcc-editor-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.gcc-editor-header-left h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1;
+}
+.gcc-editor-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.gcc-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #666;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #fff;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.gcc-back-btn:hover { color: #2563eb; border-color: #2563eb; background: #f0f4f9; }
+.gcc-status-select {
+    height: 34px; padding: 0 10px; border: 1px solid #ccc;
+    border-radius: 5px; font-size: 0.85rem; background: #fff; color: #333;
+}
+.gcc-view-btn {
+    display: inline-flex; align-items: center; height: 34px; padding: 0 14px;
+    border: 1px solid #ccc; border-radius: 5px; font-size: 0.85rem;
+    color: #333; text-decoration: none; background: #fff; transition: all 0.15s;
+}
+.gcc-view-btn:hover { border-color: #999; color: #1a1a1a; }
+.gcc-primary-btn {
+    display: inline-flex; align-items: center; height: 34px; padding: 0 20px;
+    background: #2563eb; color: #fff !important; border: none; border-radius: 5px;
+    font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+    text-decoration: none;
+}
+.gcc-primary-btn:hover { opacity: 0.88; }
+.gcc-primary-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Notices ──────────────────────────────────────────────────── */
+.gcc-editor-notice {
+    padding: 10px 16px; border-radius: 5px; margin-bottom: 20px;
+    font-size: 0.85rem; border-left: 3px solid; line-height: 1.5;
+}
+.gcc-notice-info    { background: #e8f4fd; border-color: #2196f3; color: #0d47a1; }
+.gcc-notice-warning { background: #fff8e1; border-color: #f59e0b; color: #78350f; }
+
+/* ── Save feedback toast ──────────────────────────────────────── */
+.gcc-save-feedback {
+    position: fixed; top: 36px; right: 24px; z-index: 99999;
+    padding: 11px 20px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.gcc-feedback-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.gcc-feedback-error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* ══════════════════════════════════════════════════════════════
+   TWO-COLUMN LAYOUT
+   Uses a float-based approach inside the editor body so it works
+   regardless of WP admin container behavior.
+   Main column floats left, sidebar floats right, clearfix after.
+   ══════════════════════════════════════════════════════════════ */
+.gcc-editor-body {
+    /* clearfix */
+    overflow: hidden;
+    width: 100%;
+}
+.gcc-editor-main {
+    float: left;
+    width: calc(100% - 324px); /* sidebar 300px + 24px gap */
+    box-sizing: border-box;
+}
+.gcc-editor-sidebar {
+    float: right;
+    width: 300px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Responsive: stack below 900px */
+@media screen and (max-width: 900px) {
+    .gcc-editor-main,
+    .gcc-editor-sidebar {
+        float: none;
+        width: 100%;
+    }
+    .gcc-editor-sidebar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 0;
+    }
+}
+@media screen and (max-width: 600px) {
+    .gcc-editor-sidebar { grid-template-columns: 1fr; }
+}
+
+/* ── Main column cards ────────────────────────────────────────── */
+.gcc-card {
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+.gcc-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #555;
+}
+.gcc-card-body { padding: 16px 18px; }
+
+/* ── Sidebar cards ────────────────────────────────────────────── */
+.gcc-sidebar-card {
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.gcc-sidebar-card-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+}
+.gcc-sidebar-card-body { padding: 13px 15px; }
+
+/* ── Form fields ──────────────────────────────────────────────── */
+.gcc-field { margin-bottom: 13px; }
+.gcc-field:last-child { margin-bottom: 0; }
+.gcc-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #444;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.gcc-label-hint {
+    font-weight: 400; color: #999; font-size: 0.73rem;
+    text-transform: none; letter-spacing: 0; margin-left: 4px;
+}
+.gcc-required { color: #e53e3e; }
+
+.gcc-input,
+.gcc-select,
+.gcc-textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 0.875rem;
+    color: #1a1a1a;
+    background: #fff;
+    font-family: inherit;
+    line-height: 1.4;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+}
+.gcc-input:focus, .gcc-select:focus, .gcc-textarea:focus {
+    border-color: #2563eb; outline: none;
+    box-shadow: 0 0 0 3px rgba(26,58,92,0.1);
+}
+.gcc-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+    cursor: pointer;
+}
+.gcc-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.gcc-title-input {
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    padding: 10px 12px !important;
+    border-width: 2px !important;
+}
+.gcc-input-row { display: flex; gap: 8px; align-items: center; }
+.gcc-input-row .gcc-input { flex: 1; }
+.gcc-input-inline { display: inline-block; width: auto; }
+
+/* ── Bible picker ─────────────────────────────────────────────── */
+.gcc-bible-picker { display: flex; flex-direction: column; gap: 9px; }
+.gcc-picker-row { display: flex; gap: 7px; }
+.gcc-picker-col { flex: 1; min-width: 0; }
+.gcc-picker-col label {
+    display: block; font-size: 0.7rem; font-weight: 600; color: #777;
+    margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.gcc-apply-btn {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 12px; background: #f0f4f9; border: 1px solid #c8d8e8;
+    border-radius: 5px; color: #2563eb; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; width: 100%;
+}
+.gcc-apply-btn:hover { background: #dce8f5; border-color: #2563eb; }
+.gcc-apply-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Tag chip suggestions ─────────────────────────────────────── */
+.gcc-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.gcc-chip {
+    display: inline-block; font-size: 0.7rem; padding: 2px 8px;
+    background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px;
+    cursor: pointer; color: #444; transition: all 0.12s; user-select: none;
+}
+.gcc-chip:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* ── Resource rows ────────────────────────────────────────────── */
+.gcc-resource-row {
+    display: flex; gap: 6px; align-items: center; margin-bottom: 7px;
+}
+.gcc-resource-row .gcc-input { flex: 1; min-width: 0; }
+.gcc-resource-row .gcc-select { width: 110px; flex-shrink: 0; }
+.gcc-remove-btn {
+    background: none; border: 1px solid #e5e7eb; border-radius: 4px;
+    width: 28px; height: 28px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; color: #aaa; font-size: 0.75rem;
+    flex-shrink: 0; transition: all 0.12s; padding: 0;
+}
+.gcc-remove-btn:hover { color: #e53e3e; border-color: #e53e3e; background: #fff5f5; }
+.gcc-add-row-btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
+    background: none; border: 1.5px dashed #d1d5db; border-radius: 5px;
+    color: #777; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; margin-top: 3px;
+}
+.gcc-add-row-btn:hover { border-color: #2563eb; color: #2563eb; }
+
+/* ── Link button ──────────────────────────────────────────────── */
+.gcc-link-btn {
+    display: inline-flex; align-items: center; padding: 7px 10px;
+    background: #f8f9fa; border: 1px solid #d1d5db; border-radius: 5px;
+    cursor: pointer; font-size: 0.85rem; color: #555; flex-shrink: 0;
+    transition: all 0.12s;
+}
+.gcc-link-btn:hover { border-color: #2563eb; color: #2563eb; background: #f0f4f9; }
+
+/* ── YouTube preview ──────────────────────────────────────────── */
+.gcc-yt-preview { margin-top: 10px; border-radius: 5px; overflow: hidden; display: none; }
+.gcc-yt-preview img { display: block; width: 100%; }
+
+/* ── Image picker wells ───────────────────────────────────────── */
+.gcc-img-well {
+    border: 2px dashed #d1d5db; border-radius: 6px; padding: 14px;
+    text-align: center; cursor: pointer; transition: all 0.15s;
+    margin-bottom: 7px; background: #fafafa; min-height: 70px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 5px;
+}
+.gcc-img-well:hover { border-color: #2563eb; background: #f0f4f9; }
+.gcc-img-well img { display: block; width: 100%; border-radius: 4px; }
+.gcc-img-well-empty { color: #aaa; font-size: 0.78rem; }
+.gcc-img-well-empty span { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+.gcc-img-actions { display: flex; gap: 6px; }
+.gcc-img-actions button { flex: 1; }
+
+/* ── Sermon list in series editor ─────────────────────────────── */
+.gcc-sermon-list { border: 1px solid #e8e8e8; border-radius: 6px; overflow: hidden; }
+.gcc-sermon-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    border-bottom: 1px solid #f0f0f0; background: #fff; transition: background 0.1s;
+}
+.gcc-sermon-row:last-child { border-bottom: none; }
+.gcc-sermon-row:hover { background: #f8f9fa; }
+.gcc-sermon-num { font-size: 0.68rem; font-weight: 700; color: #ccc; width: 18px; text-align: center; flex-shrink: 0; }
+.gcc-sermon-info { flex: 1; min-width: 0; }
+.gcc-sermon-name {
+    display: block; font-weight: 600; font-size: 0.84rem; color: #1a1a1a;
+    text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gcc-sermon-name:hover { color: #2563eb; }
+.gcc-sermon-sub { font-size: 0.71rem; color: #999; margin-top: 1px; display: block; }
+.gcc-edit-link {
+    font-size: 0.73rem; color: #888; text-decoration: none; padding: 3px 8px;
+    border: 1px solid #e5e7eb; border-radius: 4px; flex-shrink: 0; transition: all 0.12s;
+}
+.gcc-edit-link:hover { color: #2563eb; border-color: #2563eb; background: #f0f4f9; }
+.gcc-draft-badge {
+    display: inline-block; background: #fef3c7; color: #92400e; font-size: 0.62rem;
+    font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; margin-left: 4px;
+}
+
+/* ── YT Sync ──────────────────────────────────────────────────── */
+.gcc-sync-block { background: #f8fafc; border: 1px solid #e0e7f0; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
+.gcc-sync-block h4 { margin: 0 0 6px; font-size: 0.82rem; font-weight: 700; color: #333; }
+.gcc-sync-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.gcc-sync-row .gcc-input { flex: 1; }
+.gcc-sync-btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
+    background: #fff; border: 1px solid #d1d5db; border-radius: 5px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s; flex-shrink: 0; color: #333;
+}
+.gcc-sync-btn:hover { border-color: #2563eb; color: #2563eb; }
+.gcc-sync-log {
+    margin-top: 10px; background: #fff; border: 1px solid #e8e8e8; border-radius: 4px;
+    padding: 10px 12px; max-height: 160px; overflow-y: auto; font-family: monospace;
+    font-size: 0.76rem; line-height: 1.6; display: none;
+}
+
+/* ── Toggle label ─────────────────────────────────────────────── */
+.gcc-toggle-label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; padding: 2px 0; }
+.gcc-toggle-label input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; }
+.gcc-toggle-text strong { display: block; font-size: 0.84rem; color: #1a1a1a; }
+.gcc-toggle-text span   { font-size: 0.73rem; color: #888; }
+
+/* ── Dashboard ────────────────────────────────────────────────── */
+.gcc-admin-wrap h1 { margin-bottom: 20px; }
+.gcc-admin-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.gcc-stat-card {
+    background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
+    padding: 16px 22px; text-align: center; min-width: 100px;
+}
+.gcc-stat-number { display: block; font-size: 1.9rem; font-weight: 800; color: #2563eb; }
+.gcc-stat-label  { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-top: 2px; display: block; }
+.gcc-admin-quick-links { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gcc-admin-quick-links h2 { width: 100%; margin-bottom: 6px; }
+.gcc-admin-shortcodes { margin-bottom: 20px; }
+.gcc-admin-shortcodes table td { vertical-align: middle; padding: 7px 10px; }
+.gcc-admin-bricks { background: #f0f4f9; border: 1px solid #ccd8e8; border-radius: 6px; padding: 12px 16px; }
+
+/* ── Settings ─────────────────────────────────────────────────── */
+.gcc-settings-section-title { font-size: 1.1rem; font-weight: 700; margin: 24px 0 8px; border-bottom: 2px solid #eee; padding-bottom: 7px; }
+.gcc-color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; margin-bottom: 20px; }
+.gcc-color-field { background: #fff; border: 1px solid #e2e2e2; border-radius: 7px; padding: 13px 15px; }
+.gcc-color-field label { display: block; font-weight: 600; font-size: 0.84rem; margin-bottom: 7px; }
+.gcc-color-input-wrap { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
+.gcc-color-input-wrap input[type="color"] { width: 42px; height: 32px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; padding: 2px; }
+.gcc-hex-input { font-family: monospace; width: 90px; }
+.gcc-color-hint { font-size: 0.72rem; color: #888; }
+.gcc-color-preview { background: #f8f8f8; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+.gcc-preview-card { display: flex; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 440px; }
+.gcc-preview-thumb { width: 110px; min-height: 72px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+.gcc-preview-body { padding: 10px 13px; flex: 1; }
+.gcc-preview-title  { font-weight: 700; font-size: 0.88rem; margin-bottom: 3px; }
+.gcc-preview-byline { font-size: 0.73rem; margin-bottom: 5px; }
+.gcc-preview-scripture { font-size: 0.73rem; font-weight: 600; margin-bottom: 6px; }
+.gcc-preview-tag { display: inline-block; font-size: 0.63rem; font-weight: 700; padding: 2px 7px; border-radius: 9px; margin-right: 3px; }
+.gcc-preview-btn { display: inline-block; font-size: 0.73rem; font-weight: 700; padding: 4px 11px; border-radius: 13px; text-decoration: none; margin-top: 5px; }
+
+/* ── Import ───────────────────────────────────────────────────── */
+.gcc-import-options { margin: 12px 0; display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* ── API docs ─────────────────────────────────────────────────── */
+.gcc-api-table td, .gcc-api-table th { padding: 7px 11px; vertical-align: middle; }
+.gcc-method { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 0.7rem; font-weight: 700; }
+.gcc-method.get { background: #d1fae5; color: #065f46; }
+.gcc-code-block { background: #1a1a2e; color: #e2e8f0; padding: 16px; border-radius: 6px; font-size: 0.78rem; line-height: 1.65; overflow-x: auto; }
+.gcc-api-docs ul { list-style: disc; padding-left: 18px; }
+.gcc-api-docs ul li { margin-bottom: 4px; }
+
+/* ── Shortcode generator ──────────────────────────────────────── */
+.gcc-sc-layout { display: flex; gap: 22px; align-items: flex-start; margin-top: 18px; }
+.gcc-sc-picker { flex: 1; min-width: 0; background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; overflow: hidden; }
+.gcc-sc-tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #e8e8e8; background: #f8f9fa; }
+.gcc-sc-tab {
+    padding: 9px 14px; background: none; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -2px; font-size: 0.8rem; font-weight: 600; color: #666; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+}
+.gcc-sc-tab:hover { color: #2563eb; }
+.gcc-sc-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: #fff; }
+.gcc-sc-panel { display: none; padding: 18px 20px; }
+.gcc-sc-panel.active { display: block; }
+.gcc-sc-panel h3 { margin: 0 0 5px; font-size: 0.97rem; }
+.gcc-sc-desc { color: #666; font-size: 0.83rem; margin: 0 0 16px; line-height: 1.5; }
+.gcc-sc-fields { display: flex; flex-direction: column; gap: 12px; }
+.gcc-sc-field label { display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #444; margin-bottom: 4px; }
+.gcc-sc-field select, .gcc-sc-input { width: 100%; padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 0.86rem; background: #fff; box-sizing: border-box; }
+.gcc-sc-output-wrap { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+.gcc-sc-output-card { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; padding: 16px 18px; }
+.gcc-sc-output-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 9px; }
+.gcc-sc-output {
+    background: #1a1a2e; color: #93c5fd; font-family: monospace; font-size: 0.85rem;
+    padding: 12px 14px; border-radius: 6px; margin-bottom: 10px; word-break: break-all;
+    min-height: 44px; display: flex; align-items: center;
+}
+.gcc-sc-output code { background: none; color: inherit; font-size: inherit; padding: 0; }
+.gcc-sc-copy-btn { width: 100%; justify-content: center; }
+.gcc-sc-usage-card, .gcc-sc-all-card { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; padding: 14px 16px; }
+.gcc-sc-usage-card h4, .gcc-sc-all-card h4 { margin: 0 0 8px; font-size: 0.85rem; }
+.gcc-sc-usage-card ol { margin: 0; padding-left: 16px; font-size: 0.8rem; color: #444; line-height: 1.8; }
+.gcc-sc-ref-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.gcc-sc-ref-table tr { border-bottom: 1px solid #f0f0f0; }
+.gcc-sc-ref-table tr:last-child { border-bottom: none; }
+.gcc-sc-ref-table td { padding: 5px 3px; vertical-align: top; }
+.gcc-sc-ref-table td:first-child { white-space: nowrap; padding-right: 8px; }
+@media (max-width: 860px) { .gcc-sc-layout { flex-direction: column; } .gcc-sc-output-wrap { width: 100%; } }

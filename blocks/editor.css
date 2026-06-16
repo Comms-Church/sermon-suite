@@ -1,0 +1,43 @@
+/* Sermon Suite — Block Editor Styles */
+
+/* Placeholder for unselected blocks */
+.ss-block-placeholder {
+    padding: 24px !important;
+    border: 2px dashed #d1d5db !important;
+    border-radius: 8px !important;
+    background: #fafafa !important;
+}
+.ss-block-placeholder .components-placeholder__label {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+}
+
+/* ServerSideRender loading state */
+.wp-block-sermon-suite-archive .components-spinner,
+.wp-block-sermon-suite-hero .components-spinner,
+.wp-block-sermon-suite-series-grid .components-spinner,
+.wp-block-sermon-suite-player .components-spinner,
+.wp-block-sermon-suite-related .components-spinner {
+    margin: 40px auto;
+    display: block;
+}
+
+/* Block wrapper in editor */
+.wp-block-sermon-suite-archive,
+.wp-block-sermon-suite-hero,
+.wp-block-sermon-suite-series-grid,
+.wp-block-sermon-suite-player,
+.wp-block-sermon-suite-related {
+    position: relative;
+}
+
+/* Subtle editor overlay to prevent accidental clicks inside the preview */
+.wp-block-sermon-suite-archive .gcc-archive-wrap,
+.wp-block-sermon-suite-hero .gcc-hero-wrap,
+.wp-block-sermon-suite-series-grid .gcc-series-grid,
+.wp-block-sermon-suite-player .gcc-sermon-player,
+.wp-block-sermon-suite-related .gcc-related-sermons {
+    pointer-events: none;
+    user-select: none;
+}
