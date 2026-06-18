@@ -315,13 +315,14 @@
 }
 .gcc-series-card-body { padding: 14px 16px 18px; }
 .gcc-series-card-title {
-    font-size: 1rem;
+    font-size: calc(1.25rem * var(--gcc-text-scale, 1));
     font-weight: 700;
     margin: 0 0 4px;
+    line-height: 1.3;
 }
 .gcc-series-card-date,
 .gcc-series-card-count {
-    font-size: 0.8rem;
+    font-size: calc(0.92rem * var(--gcc-text-scale, 1));
     color: var(--gcc-text-muted);
     display: block;
 }
@@ -735,12 +736,12 @@
     border-radius: 3px;
 }
 .gcc-series-card-desc {
-    font-size: 0.78rem;
+    font-size: calc(1rem * var(--gcc-text-scale, 1));
     color: var(--gcc-text-muted);
-    line-height: 1.5;
+    line-height: 1.6;
     margin: 4px 0 6px;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
