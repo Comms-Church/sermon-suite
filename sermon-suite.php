@@ -3,15 +3,18 @@
  * Plugin Name: Sermon Suite
  * Plugin URI:  https://comms.church
  * Description: A modern sermon library organized by series. Includes REST API, YouTube embed, topic filtering, scripture references, and downloadable resources. Built-in CSV importer for Series Engine migration.
- * Version:     1.4.3
+ * Version:     1.5.0
  * Author:      Comms.Church
  * License:     GPL-2.0+
  * Text Domain: sermon-suite
+ * Update URI:  https://github.com/Comms-Church/sermon-suite
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'SERMON_SUITE_VERSION', '1.4.3' );
+define( 'SERMON_SUITE_VERSION', '1.5.0' );
 define( 'SERMON_SUITE_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'SERMON_SUITE_URL',     plugin_dir_url( __FILE__ ) );
 define( 'SERMON_SUITE_PREFIX',  'sermon_suite' );
@@ -77,9 +80,16 @@ function sermon_suite_output_brand_css() {
     echo "  --gcc-bg-alt:       " . esc_attr($c['bg_alt'])       . ";\n";
 
     // Body text scale — multiplier applied to sermon copy.
+    // Base font size in pixels — anchors all plugin typography so the
+    // theme's root font-size tricks (e.g. html { font-size: 62.5% })
+    // can never shrink sermon text. The Body Text Size setting picks the base.
+    $size_map = [ 'small' => 15, 'medium' => 17, 'large' => 19, 'xlarge' => 21 ];
+    $size_key = get_option( 'sermon_suite_text_size', 'medium' );
+    $base_px  = $size_map[ $size_key ] ?? 17;
+    echo "  --gcc-fs:           " . esc_attr( $base_px ) . "px;\n";
+    // Legacy variable kept for any custom CSS written against 1.4.x.
     $scale_map = [ 'small' => '0.92', 'medium' => '1', 'large' => '1.12', 'xlarge' => '1.25' ];
-    $scale_key = get_option( 'sermon_suite_text_size', 'medium' );
-    $scale     = $scale_map[ $scale_key ] ?? '1';
+    $scale     = $scale_map[ $size_key ] ?? '1';
     echo "  --gcc-text-scale:   " . esc_attr($scale) . ";\n";
 
     echo "}\n</style>\n";

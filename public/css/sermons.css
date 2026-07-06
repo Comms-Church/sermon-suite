@@ -34,7 +34,7 @@
     margin-bottom: 36px;
 }
 .gcc-filter-label {
-    font-size: 0.8rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.8);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -51,7 +51,7 @@
     padding: 5px 14px;
     border-radius: 20px;
     border: 1.5px solid var(--gcc-border);
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     color: var(--gcc-text);
     text-decoration: none;
     transition: var(--gcc-transition);
@@ -92,7 +92,7 @@
 }
 .gcc-series-meta { padding-top: 4px; }
 .gcc-series-title {
-    font-size: 1.6rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1.6);
     font-weight: 700;
     margin: 0 0 6px;
     line-height: 1.2;
@@ -100,19 +100,19 @@
 .gcc-series-title a { color: var(--gcc-text); text-decoration: none; }
 .gcc-series-title a:hover { color: var(--gcc-accent); }
 .gcc-series-date {
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     color: var(--gcc-text-muted);
     display: block;
     margin-bottom: 10px;
 }
 .gcc-series-desc {
     color: var(--gcc-text-muted);
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     line-height: 1.6;
     margin: 0 0 10px;
 }
 .gcc-series-count {
-    font-size: 0.8rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.8);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -130,7 +130,7 @@
     grid-column: 1 / -1;
     display: block;
     text-align: right;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     color: var(--gcc-accent);
     text-decoration: none;
@@ -171,7 +171,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.5rem;
+    font-size: calc(var(--gcc-fs, 17px) * 2.5);
     color: #fff;
     opacity: 0;
     background: var(--gcc-play-bg);
@@ -183,7 +183,7 @@
     padding: 14px 16px 16px;
 }
 .gcc-card-title {
-    font-size: calc(1.4rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1.4);
     font-weight: 700;
     margin: 0 0 6px;
     line-height: 1.3;
@@ -191,7 +191,7 @@
 .gcc-card-title a { color: var(--gcc-text); text-decoration: none; }
 .gcc-card-title a:hover { color: var(--gcc-accent); }
 .gcc-card-byline {
-    font-size: calc(1rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1);
     color: var(--gcc-text-muted);
     margin-bottom: 8px;
     display: flex;
@@ -199,14 +199,14 @@
     flex-wrap: wrap;
 }
 .gcc-card-desc {
-    font-size: calc(1.08rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1.08);
     color: var(--gcc-text);
     line-height: 1.65;
     margin: 0 0 10px;
 }
 .gcc-card-scripture,
 .gcc-scripture-inline {
-    font-size: calc(0.95rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     color: var(--gcc-accent);
     margin-bottom: 8px;
     display: block;
@@ -222,7 +222,7 @@
     margin-bottom: 10px;
 }
 .gcc-topic-badge {
-    font-size: 0.72rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.72);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -250,7 +250,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.78rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.78);
     font-weight: 600;
     color: var(--gcc-text-muted);
     text-decoration: none;
@@ -268,7 +268,7 @@
     display: inline-block;
     background: var(--gcc-accent);
     color: var(--gcc-button-text) !important;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     padding: 8px 20px;
     border-radius: 20px;
@@ -315,14 +315,14 @@
 }
 .gcc-series-card-body { padding: 14px 16px 18px; }
 .gcc-series-card-title {
-    font-size: calc(1.25rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1.25);
     font-weight: 700;
     margin: 0 0 4px;
     line-height: 1.3;
 }
 .gcc-series-card-date,
 .gcc-series-card-count {
-    font-size: calc(0.92rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 0.92);
     color: var(--gcc-text-muted);
     display: block;
 }
@@ -331,7 +331,7 @@
 .gcc-single-sermon { padding-top: 32px; }
 .gcc-back-link {
     display: inline-block;
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     color: var(--gcc-accent);
     text-decoration: none;
     margin-bottom: 16px;
@@ -339,7 +339,7 @@
 }
 .gcc-back-link:hover { text-decoration: underline; }
 .gcc-sermon-title {
-    font-size: 2rem;
+    font-size: calc(var(--gcc-fs, 17px) * 2);
     font-weight: 800;
     margin: 0 0 10px;
     line-height: 1.2;
@@ -347,7 +347,7 @@
 .gcc-sermon-byline {
     display: flex;
     gap: 12px;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     color: var(--gcc-text-muted);
     margin-bottom: 24px;
     flex-wrap: wrap;
@@ -377,13 +377,13 @@
     padding: 10px 16px;
     border-radius: 0 var(--gcc-radius-sm) var(--gcc-radius-sm) 0;
     margin-bottom: 20px;
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     font-weight: 600;
 }
 .gcc-scripture-link { color: var(--gcc-accent); text-decoration: none; }
 .gcc-scripture-link:hover { text-decoration: underline; }
 .gcc-sermon-description {
-    font-size: 1rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1);
     line-height: 1.75;
     color: var(--gcc-text);
     margin-bottom: 28px;
@@ -395,7 +395,7 @@
     margin-bottom: 24px;
 }
 .gcc-resources-heading {
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
@@ -414,7 +414,7 @@
     padding: 9px 18px;
     border-radius: 24px;
     border: 1.5px solid var(--gcc-border);
-    font-size: 0.88rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.88);
     font-weight: 600;
     color: var(--gcc-text);
     text-decoration: none;
@@ -443,7 +443,7 @@
 }
 .gcc-nav-prev,
 .gcc-nav-next {
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     color: var(--gcc-accent);
     text-decoration: none;
@@ -477,14 +477,14 @@
 .gcc-back-link-hero {
     display: inline-block;
     color: rgba(255,255,255,0.8);
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     font-weight: 600;
     text-decoration: none;
     margin-bottom: 12px;
 }
 .gcc-back-link-hero:hover { color: #fff; }
 .gcc-series-hero-content h1 {
-    font-size: 2.4rem;
+    font-size: calc(var(--gcc-fs, 17px) * 2.4);
     font-weight: 800;
     margin: 0 0 10px;
     color: #fff;
@@ -492,7 +492,7 @@
 .gcc-series-hero-meta {
     display: flex;
     gap: 16px;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     opacity: 0.85;
     margin-bottom: 12px;
 }
@@ -503,7 +503,7 @@
     margin-top: 8px;
 }
 .gcc-section-heading {
-    font-size: 1.2rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1.2);
     font-weight: 700;
     margin: 0 0 20px;
     padding-bottom: 10px;
@@ -512,8 +512,8 @@
 
 /* ── Responsive tweaks ────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-    .gcc-sermon-title { font-size: 1.5rem; }
-    .gcc-series-hero-content h1 { font-size: 1.7rem; }
+    .gcc-sermon-title { font-size: calc(var(--gcc-fs, 17px) * 1.5); }
+    .gcc-series-hero-content h1 { font-size: calc(var(--gcc-fs, 17px) * 1.7); }
     .gcc-filter-tags { gap: 6px; }
 }
 
@@ -566,7 +566,7 @@
 }
 .gcc-hero-badge {
     display: inline-block;
-    font-size: 0.7rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.7);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -577,7 +577,7 @@
     margin-bottom: 10px;
 }
 .gcc-hero-series {
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     opacity: 0.8;
     margin-bottom: 6px;
@@ -585,7 +585,7 @@
 .gcc-hero-series a { color: #fff; text-decoration: none; }
 .gcc-hero-series a:hover { text-decoration: underline; }
 .gcc-hero-title {
-    font-size: 2rem;
+    font-size: calc(var(--gcc-fs, 17px) * 2);
     font-weight: 800;
     margin: 0 0 10px;
     line-height: 1.2;
@@ -596,12 +596,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     opacity: 0.8;
     margin-bottom: 12px;
 }
 .gcc-hero-desc {
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     opacity: 0.85;
     line-height: 1.6;
     margin: 0 0 20px;
@@ -617,7 +617,7 @@
     display: inline-block;
     background: var(--gcc-accent);
     color: var(--gcc-button-text, #fff) !important;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 700;
     padding: 11px 26px;
     border-radius: 24px;
@@ -630,7 +630,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.82rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.82);
     font-weight: 600;
     padding: 9px 18px;
     border-radius: 24px;
@@ -645,7 +645,7 @@
     border-color: rgba(255,255,255,0.8);
 }
 @media (max-width: 600px) {
-    .gcc-hero-title { font-size: 1.5rem; }
+    .gcc-hero-title { font-size: calc(var(--gcc-fs, 17px) * 1.5); }
     .gcc-hero-inner { padding: 0 20px; }
     .gcc-hero-wrap  { min-height: 340px; }
 }
@@ -668,7 +668,7 @@
     background: var(--gcc-bg-alt);
     border: none;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     font-weight: 700;
     color: var(--gcc-text);
     text-align: left;
@@ -676,7 +676,7 @@
 }
 .gcc-notes-toggle:hover { background: #ebebeb; }
 .gcc-notes-arrow {
-    font-size: 0.7rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.7);
     transition: transform 0.2s;
     display: inline-block;
 }
@@ -685,7 +685,7 @@
 }
 .gcc-notes-body {
     padding: 20px 24px;
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     line-height: 1.8;
     color: var(--gcc-text);
     border-top: 1px solid var(--gcc-border);
@@ -706,7 +706,7 @@
 }
 .gcc-related-block { margin-bottom: 40px; }
 .gcc-related-heading {
-    font-size: 1.1rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1.1);
     font-weight: 700;
     margin: 0 0 18px;
     color: var(--gcc-text);
@@ -728,7 +728,7 @@
     top: 10px; left: 10px;
     background: var(--gcc-accent);
     color: var(--gcc-button-text, #fff);
-    font-size: 0.65rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.65);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -736,7 +736,7 @@
     border-radius: 3px;
 }
 .gcc-series-card-desc {
-    font-size: calc(1rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1);
     color: var(--gcc-text-muted);
     line-height: 1.6;
     margin: 4px 0 6px;
@@ -790,7 +790,7 @@
 .gcc-series-block-meta { flex: 1; padding-top: 2px; }
 .gcc-series-inline-badge {
     display: inline-block;
-    font-size: 0.65rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.65);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -801,7 +801,7 @@
     margin-bottom: 8px;
 }
 .gcc-series-block-title {
-    font-size: 1.4rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1.4);
     font-weight: 800;
     margin: 0 0 6px;
     line-height: 1.2;
@@ -812,7 +812,7 @@
 }
 .gcc-series-block-title a:hover { color: var(--gcc-accent); }
 .gcc-series-block-dates {
-    font-size: 0.82rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.82);
     color: var(--gcc-text-muted);
     margin-bottom: 8px;
     display: flex;
@@ -821,14 +821,14 @@
     align-items: center;
 }
 .gcc-series-block-count {
-    font-size: 0.75rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.75);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--gcc-accent);
 }
 .gcc-series-block-desc {
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     color: var(--gcc-text-muted);
     line-height: 1.6;
     margin: 0;
@@ -878,7 +878,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1);
     color: #fff;
     opacity: 0;
     transition: opacity var(--gcc-transition);
@@ -893,7 +893,7 @@
     gap: 3px;
 }
 .gcc-sermon-row-title {
-    font-size: 0.92rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.92);
     font-weight: 600;
     color: var(--gcc-text);
     white-space: nowrap;
@@ -901,12 +901,12 @@
     text-overflow: ellipsis;
 }
 .gcc-sermon-row-meta {
-    font-size: 0.76rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.76);
     color: var(--gcc-text-muted);
 }
 .gcc-sermon-row-arrow {
     color: var(--gcc-text-muted);
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     flex-shrink: 0;
     transition: transform var(--gcc-transition), color var(--gcc-transition);
 }
@@ -917,7 +917,7 @@
 .gcc-series-view-all {
     display: block;
     padding: 11px 16px;
-    font-size: 0.83rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.83);
     font-weight: 700;
     color: var(--gcc-accent);
     text-decoration: none;
@@ -930,7 +930,7 @@
 @media (max-width: 640px) {
     .gcc-series-block-header { flex-direction: column; }
     .gcc-series-block-img-wrap { width: 100%; }
-    .gcc-series-block-title { font-size: 1.2rem; }
+    .gcc-series-block-title { font-size: calc(var(--gcc-fs, 17px) * 1.2); }
     .gcc-sermon-row-thumb { width: 72px; }
 }
 
@@ -954,7 +954,7 @@
     gap: 6px;
 }
 .ss-filter-group-label {
-    font-size: 0.75rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.75);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -981,7 +981,7 @@
     padding: 0 12px;
     border: 1px solid var(--gcc-border);
     border-radius: var(--gcc-radius-sm);
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     font-weight: 600;
     color: var(--gcc-text);
     text-decoration: none;
@@ -1014,7 +1014,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.82rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.82);
     font-weight: 600;
     color: var(--gcc-text-muted);
     text-decoration: none;
@@ -1064,7 +1064,7 @@
 
 /* Title + byline */
 .ss-sermon-title {
-    font-size: calc(2rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 2);
     font-weight: 800;
     line-height: 1.2;
     margin: 0 0 8px;
@@ -1075,7 +1075,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
-    font-size: calc(0.95rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     color: var(--gcc-text-muted);
     margin-bottom: 16px;
 }
@@ -1084,7 +1084,7 @@
 
 /* Description */
 .ss-sermon-desc {
-    font-size: calc(1.1rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1.1);
     line-height: 1.8;
     color: var(--gcc-text);
     margin-bottom: 18px;
@@ -1108,7 +1108,7 @@
     background: var(--gcc-bg-alt);
     border: none;
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.88);
     font-weight: 600;
     color: var(--gcc-text);
     transition: background var(--gcc-transition);
@@ -1129,7 +1129,7 @@
 }
 .ss-notes-body {
     padding: 18px 20px;
-    font-size: calc(1rem * var(--gcc-text-scale, 1));
+    font-size: calc(var(--gcc-fs, 17px) * 1);
     line-height: 1.8;
     color: var(--gcc-text);
     border-top: 1px solid var(--gcc-border);
@@ -1165,7 +1165,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.72rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.72);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -1174,7 +1174,7 @@
 .ss-nav-next .ss-nav-label { justify-content: flex-end; }
 .ss-nav-next { text-align: right; }
 .ss-nav-title {
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     font-weight: 600;
     color: var(--gcc-text);
     line-height: 1.3;
@@ -1198,7 +1198,7 @@
     padding: 9px 14px;
     background: var(--gcc-bg-alt);
     border-bottom: 1px solid var(--gcc-border);
-    font-size: 0.72rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.72);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -1221,7 +1221,7 @@
     background: var(--gcc-accent-light);
     border-left: 3px solid var(--gcc-accent);
     border-radius: 0 6px 6px 0;
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 700;
     color: var(--gcc-accent);
     text-decoration: none;
@@ -1229,7 +1229,7 @@
 }
 .ss-scripture-link:hover { opacity: 0.85; text-decoration: none; }
 .ss-scripture-plain {
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     color: var(--gcc-text);
     display: block;
@@ -1268,7 +1268,7 @@
     gap: 1px;
 }
 .ss-resource-name {
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     font-weight: 600;
     color: var(--gcc-text);
     white-space: nowrap;
@@ -1276,7 +1276,7 @@
     text-overflow: ellipsis;
 }
 .ss-resource-type {
-    font-size: 0.7rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.7);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--gcc-text-muted);
@@ -1291,7 +1291,7 @@
 }
 .ss-topic-chip {
     display: inline-block;
-    font-size: 0.75rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.75);
     font-weight: 600;
     padding: 4px 10px;
     border-radius: 20px;
@@ -1319,7 +1319,7 @@
 }
 .ss-series-thumb-link:hover .ss-series-thumb { opacity: 0.88; }
 .ss-series-name {
-    font-size: 0.9rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 700;
     margin: 0 0 3px;
     line-height: 1.3;
@@ -1327,7 +1327,7 @@
 .ss-series-name a { color: var(--gcc-text); text-decoration: none; }
 .ss-series-name a:hover { color: var(--gcc-accent); }
 .ss-series-meta {
-    font-size: 0.78rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.78);
     color: var(--gcc-text-muted);
     margin-bottom: 10px;
 }
@@ -1337,7 +1337,7 @@
     padding: 8px 12px;
     border: 1px solid var(--gcc-border);
     border-radius: var(--gcc-radius);
-    font-size: 0.82rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.82);
     font-weight: 600;
     color: var(--gcc-text);
     text-decoration: none;
@@ -1355,7 +1355,7 @@
 .gcc-related-sermons { margin-top: 0; padding-top: 0; border-top: none; }
 .gcc-related-block { margin-bottom: 28px; }
 .gcc-related-heading {
-    font-size: 0.78rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.78);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -1379,7 +1379,7 @@
         grid-template-columns: 1fr 1fr;
         gap: 14px;
     }
-    .ss-sermon-title { font-size: 1.4rem; }
+    .ss-sermon-title { font-size: calc(var(--gcc-fs, 17px) * 1.4); }
 }
 @media (max-width: 520px) {
     .ss-sermon-sidebar { grid-template-columns: 1fr; }
@@ -1421,7 +1421,7 @@
     transform: translateY(-1px);
 }
 .ss-topic-tile-name {
-    font-size: 0.95rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     font-weight: 600;
     line-height: 1.3;
 }
@@ -1436,7 +1436,7 @@
     background: var(--gcc-accent-light);
     color: var(--gcc-accent);
     border-radius: 13px;
-    font-size: 0.78rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.78);
     font-weight: 700;
 }
 .ss-topic-tile:hover .ss-topic-tile-count {
@@ -1465,7 +1465,7 @@
 }
 .ss-tax-kicker {
     display: inline-block;
-    font-size: 0.75rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.75);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -1473,20 +1473,20 @@
     margin-bottom: 6px;
 }
 .ss-tax-title {
-    font-size: 2rem;
+    font-size: calc(var(--gcc-fs, 17px) * 2);
     font-weight: 800;
     line-height: 1.15;
     margin: 0 0 8px;
     color: var(--gcc-text);
 }
 .ss-tax-desc {
-    font-size: 1.05rem;
+    font-size: calc(var(--gcc-fs, 17px) * 1.05);
     line-height: 1.7;
     color: var(--gcc-text-muted);
     margin: 0 0 8px;
 }
 .ss-tax-count {
-    font-size: 0.85rem;
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
     font-weight: 600;
     color: var(--gcc-text-muted);
     margin: 0;
@@ -1494,5 +1494,50 @@
 .ss-tax-list { margin-bottom: 24px; }
 @media (max-width: 520px) {
     .ss-tax-wrap { padding: 0 16px; }
-    .ss-tax-title { font-size: 1.5rem; }
+    .ss-tax-title { font-size: calc(var(--gcc-fs, 17px) * 1.5); }
+}
+
+/* ── Taxonomy page: series rows (category/campus archives) ──────── */
+.ss-tax-series-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: var(--gcc-surface);
+    border: 1px solid var(--gcc-border);
+    border-radius: var(--gcc-radius);
+    text-decoration: none;
+    color: var(--gcc-text);
+    transition: border-color var(--gcc-transition), background var(--gcc-transition);
+}
+.ss-tax-series-row:hover {
+    border-color: var(--gcc-accent);
+    background: var(--gcc-accent-light);
+    text-decoration: none;
+}
+.ss-tax-series-thumb {
+    width: 160px;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.ss-tax-series-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+.ss-tax-series-title {
+    font-size: calc(var(--gcc-fs, 17px) * 1.2);
+    font-weight: 700;
+    line-height: 1.3;
+}
+.ss-tax-series-count {
+    font-size: calc(var(--gcc-fs, 17px) * 0.85);
+    color: var(--gcc-text-muted);
+}
+@media (max-width: 520px) {
+    .ss-tax-series-thumb { width: 110px; }
 }

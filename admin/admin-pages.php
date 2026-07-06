@@ -332,7 +332,7 @@ function sermon_suite_settings_page() {
                             <option value="large"  <?php selected($text_size, 'large');  ?>>Large</option>
                             <option value="xlarge" <?php selected($text_size, 'xlarge'); ?>>Extra Large</option>
                         </select>
-                        <p class="description">Scales the sermon title and body copy on the public sermon page. Font family is inherited from your theme.</p>
+                        <p class="description">Controls the size of all sermon text on your public pages — titles, cards, descriptions, filters, and buttons. Font family is inherited from your theme.</p>
                     </td>
                 </tr>
                 <tr>

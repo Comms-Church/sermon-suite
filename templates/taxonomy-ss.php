@@ -49,7 +49,25 @@ $is_series_tax = in_array( $term->taxonomy, [ 'ss_series_category' ], true );
         <?php if ( have_posts() ) : ?>
         <div class="gcc-sermon-list ss-tax-list">
             <?php while ( have_posts() ) : the_post();
-                ss_render_sermon_card( get_the_ID(), 'list' );
+                if ( get_post_type() === 'ss_series' ) :
+                    $sid   = get_the_ID();
+                    $img   = ss_get_series_image( $sid, 'sm' ) ?: ss_get_series_image( $sid, 'lg' );
+                    $count = count( ss_get_series_sermons( $sid ) );
+                    ?>
+                    <a href="<?php the_permalink(); ?>" class="ss-tax-series-row">
+                        <?php if ( $img ) : ?>
+                        <img src="<?php echo esc_url( $img ); ?>" alt="<?php the_title_attribute(); ?>"
+                             class="ss-tax-series-thumb" loading="lazy" />
+                        <?php endif; ?>
+                        <span class="ss-tax-series-info">
+                            <span class="ss-tax-series-title"><?php the_title(); ?></span>
+                            <span class="ss-tax-series-count"><?php echo $count; ?> message<?php echo $count !== 1 ? 's' : ''; ?></span>
+                        </span>
+                    </a>
+                    <?php
+                else :
+                    ss_render_sermon_card( get_the_ID(), 'list' );
+                endif;
             endwhile; ?>
         </div>
 
