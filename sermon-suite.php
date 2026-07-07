@@ -3,7 +3,7 @@
  * Plugin Name: Sermon Suite
  * Plugin URI:  https://comms.church
  * Description: A modern sermon library organized by series. Includes REST API, YouTube embed, topic filtering, scripture references, and downloadable resources. Built-in CSV importer for Series Engine migration.
- * Version:     1.6.0
+ * Version:     2.0.0
  * Author:      Comms.Church
  * License:     GPL-2.0+
  * Text Domain: sermon-suite
@@ -14,7 +14,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'SERMON_SUITE_VERSION', '1.6.0' );
+define( 'SERMON_SUITE_VERSION', '2.0.0' );
 define( 'SERMON_SUITE_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'SERMON_SUITE_URL',     plugin_dir_url( __FILE__ ) );
 define( 'SERMON_SUITE_PREFIX',  'sermon_suite' );
@@ -28,6 +28,7 @@ require_once SERMON_SUITE_DIR . 'includes/template-loader.php';
 require_once SERMON_SUITE_DIR . 'includes/helpers.php';
 require_once SERMON_SUITE_DIR . 'includes/yt-sync.php';
 require_once SERMON_SUITE_DIR . 'includes/bible-data.php';
+require_once SERMON_SUITE_DIR . 'includes/sermonshots-api.php';
 require_once SERMON_SUITE_DIR . 'api/rest-api.php';
 if ( is_admin() ) {
     require_once SERMON_SUITE_DIR . 'includes/updater.php';

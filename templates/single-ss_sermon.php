@@ -17,6 +17,8 @@ while ( have_posts() ) : the_post();
     $speakers    = wp_get_post_terms($sermon_id, 'ss_speaker', ['fields' => 'names']);
     $topics      = wp_get_post_terms($sermon_id, 'ss_topic',   ['fields' => 'all']);
     $notes       = get_post_meta($sermon_id, '_ss_sermon_notes', true);
+    $guide       = get_post_meta($sermon_id, '_ss_discussion_guide', true);
+    $transcript  = get_post_meta($sermon_id, '_ss_transcript', true);
 
     // Series data
     $series       = $series_id ? get_post($series_id) : null;
@@ -97,6 +99,38 @@ while ( have_posts() ) : the_post();
                         </button>
                         <div class="ss-notes-body" hidden>
                             <?php echo wp_kses_post($notes); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Discussion Guide -->
+                    <?php if ($guide) : ?>
+                    <div class="ss-notes-block">
+                        <button class="ss-notes-toggle" aria-expanded="false">
+                            <span class="ss-notes-toggle-label">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-3 3v-3H3a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+                                Discussion Guide
+                            </span>
+                            <svg class="ss-notes-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <div class="ss-notes-body" hidden>
+                            <?php echo wp_kses_post( wpautop( $guide ) ); ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Transcript -->
+                    <?php if ($transcript) : ?>
+                    <div class="ss-notes-block">
+                        <button class="ss-notes-toggle" aria-expanded="false">
+                            <span class="ss-notes-toggle-label">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                Transcript
+                            </span>
+                            <svg class="ss-notes-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <div class="ss-notes-body ss-transcript-body" hidden>
+                            <?php echo wp_kses_post( wpautop( $transcript ) ); ?>
                         </div>
                     </div>
                     <?php endif; ?>

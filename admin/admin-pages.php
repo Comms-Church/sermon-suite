@@ -134,6 +134,7 @@ function sermon_suite_settings_page() {
         $allowed_sizes = [ 'small', 'medium', 'large', 'xlarge' ];
         $size_in = sanitize_key($_POST['text_size'] ?? 'medium');
         update_option('sermon_suite_text_size', in_array($size_in, $allowed_sizes, true) ? $size_in : 'medium');
+        update_option('sermon_suite_shots_api_key', sanitize_text_field($_POST['shots_api_key'] ?? ''));
         // Brand colors — sanitize as hex
         $color_fields = [
             'sermon_suite_color_accent',
@@ -160,6 +161,7 @@ function sermon_suite_settings_page() {
     $yt_api_key      = get_option('sermon_suite_yt_api_key',    '');
     $sermons_page_id = (int) get_option('sermon_suite_page_id', 0);
     $text_size       = get_option('sermon_suite_text_size', 'medium');
+    $shots_api_key   = get_option('sermon_suite_shots_api_key', '');
     $all_pages       = get_posts(['post_type'=>'page','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'publish']);
     $versions = ['NIV','ESV','KJV','NLT','NASB','MSG','CSB'];
 
@@ -324,6 +326,50 @@ function sermon_suite_settings_page() {
                             </a>
                             Enable the <strong>YouTube Data API v3</strong>, create credentials → API Key.
                         </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Sermon Shots API Key</th>
+                    <td>
+                        <input type="password" name="shots_api_key" id="ss-shots-key"
+                               value="<?php echo esc_attr($shots_api_key); ?>"
+                               class="regular-text" autocomplete="off" />
+                        <button type="button" class="button" id="ss-shots-test">Test Connection</button>
+                        <span id="ss-shots-test-result" style="margin-left:8px;font-weight:600;"></span>
+                        <p class="description">
+                            Connects Sermon Suite to your <a href="https://sermonshots.com" target="_blank" rel="noopener">Sermon Shots</a> account
+                            so you can import AI-generated summaries, discussion guides, and transcripts into sermons.
+                            The key is stored server-side and never exposed to visitors.
+                            <strong>Save the key first, then test.</strong>
+                        </p>
+                        <script>
+                        (function(){
+                            var btn = document.getElementById('ss-shots-test');
+                            if (!btn) return;
+                            btn.addEventListener('click', function(){
+                                var out = document.getElementById('ss-shots-test-result');
+                                out.style.color = '#666';
+                                out.textContent = 'Testing…';
+                                fetch('<?php echo esc_url_raw( rest_url('sermon-suite/v1/shots/test') ); ?>', {
+                                    method: 'POST',
+                                    headers: { 'X-WP-Nonce': '<?php echo esc_js( wp_create_nonce('wp_rest') ); ?>' },
+                                    credentials: 'same-origin'
+                                }).then(function(r){ return r.json().then(function(j){ return {ok: r.ok, j: j}; }); })
+                                .then(function(res){
+                                    if (res.ok && res.j && res.j.ok) {
+                                        out.style.color = '#1a7f37';
+                                        out.textContent = '✅ Connected — ' + res.j.video_count + ' video(s) found';
+                                    } else {
+                                        out.style.color = '#b32d2e';
+                                        out.textContent = '❌ ' + ((res.j && res.j.message) ? res.j.message : 'Connection failed');
+                                    }
+                                }).catch(function(){
+                                    out.style.color = '#b32d2e';
+                                    out.textContent = '❌ Request failed';
+                                });
+                            });
+                        })();
+                        </script>
                     </td>
                 </tr>
                 <tr>

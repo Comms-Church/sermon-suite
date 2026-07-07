@@ -99,6 +99,9 @@ function ss_ajax_save_sermon() {
         '_ss_scripture_ref' => sanitize_text_field($_POST['scripture_ref'] ?? ''),
         '_ss_scripture_url' => esc_url_raw($_POST['scripture_url']         ?? ''),
         '_ss_sermon_notes'  => wp_kses_post($_POST['sermon_notes']         ?? ''),
+        '_ss_discussion_guide' => wp_kses_post($_POST['discussion_guide']  ?? ''),
+        '_ss_transcript'       => wp_kses_post($_POST['transcript']        ?? ''),
+        '_ss_shots_video_id'   => sanitize_text_field($_POST['shots_video_id'] ?? ''),
     ];
     foreach ($metas as $k => $v) update_post_meta($post_id, $k, $v);
 
@@ -192,6 +195,9 @@ function ss_render_sermon_editor() {
     $scr_ref    = $is_edit ? get_post_meta($post_id,'_ss_scripture_ref', true) : '';
     $scr_url    = $is_edit ? get_post_meta($post_id,'_ss_scripture_url', true) : '';
     $notes      = $is_edit ? get_post_meta($post_id,'_ss_sermon_notes',  true) : '';
+    $guide      = $is_edit ? get_post_meta($post_id,'_ss_discussion_guide', true) : '';
+    $transcript = $is_edit ? get_post_meta($post_id,'_ss_transcript',       true) : '';
+    $shots_vid  = $is_edit ? get_post_meta($post_id,'_ss_shots_video_id',   true) : '';
     $resources  = $is_edit ? (get_post_meta($post_id,'_ss_resources',true) ?: []) : [];
     $yt_synced  = $is_edit ? get_post_meta($post_id,'_ss_yt_synced', true) : '';
     $topics     = $is_edit ? implode(', ', wp_get_post_terms($post_id,'ss_topic',  ['fields'=>'names'])) : '';
@@ -259,6 +265,24 @@ function ss_render_sermon_editor() {
                     <div class="gcc-card-body">
                         <textarea id="gcc-notes" class="gcc-textarea" rows="6"
                                   placeholder="Outline, fill-in-the-blank notes, or key points…"><?php echo esc_textarea($notes); ?></textarea>
+                    </div>
+                </div>
+
+                <!-- Discussion Guide -->
+                <div class="gcc-card">
+                    <div class="gcc-card-header">💬 Discussion Guide <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Import from Sermon Shots or write your own.</span></div>
+                    <div class="gcc-card-body">
+                        <textarea id="gcc-guide" class="gcc-textarea" rows="6"
+                                  placeholder="Small-group questions and discussion prompts…"><?php echo esc_textarea($guide); ?></textarea>
+                    </div>
+                </div>
+
+                <!-- Transcript -->
+                <div class="gcc-card">
+                    <div class="gcc-card-header">🗒 Transcript <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Great for accessibility and search.</span></div>
+                    <div class="gcc-card-body">
+                        <textarea id="gcc-transcript" class="gcc-textarea" rows="6"
+                                  placeholder="Full sermon transcript…"><?php echo esc_textarea($transcript); ?></textarea>
                     </div>
                 </div>
 
@@ -476,6 +500,36 @@ function ss_render_sermon_editor() {
                     </div>
                 </div>
 
+                <!-- Sermon Shots -->
+                <div class="gcc-sidebar-card">
+                    <div class="gcc-sidebar-card-header">⚡ Sermon Shots</div>
+                    <div class="gcc-sidebar-card-body">
+                        <?php if ( ! Sermon_Suite_Shots_API::has_key() ) : ?>
+                        <p style="margin:0;font-size:0.8rem;color:#888;">
+                            Connect your Sermon Shots account to import AI-generated
+                            summaries, discussion guides, and transcripts.
+                            <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add your API key →</a>
+                        </p>
+                        <?php else : ?>
+                        <div class="gcc-field">
+                            <label class="gcc-label">Sermon Shots Video</label>
+                            <select id="gcc-shots-video" class="gcc-select" data-current="<?php echo esc_attr($shots_vid); ?>">
+                                <option value="">Loading videos…</option>
+                            </select>
+                        </div>
+                        <div class="gcc-field" style="margin-bottom:8px;">
+                            <label class="gcc-label">Import</label>
+                            <label class="gcc-pick-item" style="padding:2px 0;"><input type="checkbox" id="gcc-shots-t-summary" checked /> <span>Summary → Description</span></label>
+                            <label class="gcc-pick-item" style="padding:2px 0;"><input type="checkbox" id="gcc-shots-t-guide" checked /> <span>Discussion Guide</span></label>
+                            <label class="gcc-pick-item" style="padding:2px 0;"><input type="checkbox" id="gcc-shots-t-transcript" checked /> <span>Transcript</span></label>
+                        </div>
+                        <button type="button" class="gcc-add-new-btn" id="gcc-shots-import" style="width:100%;">Import from Sermon Shots</button>
+                        <p id="gcc-shots-status" style="margin:8px 0 0;font-size:0.78rem;color:#888;"></p>
+                        <?php endif; ?>
+                        <input type="hidden" id="gcc-shots-video-id" value="<?php echo esc_attr($shots_vid); ?>" />
+                    </div>
+                </div>
+
             </div><!-- sidebar -->
         </div><!-- body -->
     </div><!-- wrap -->
@@ -583,6 +637,94 @@ function ss_render_sermon_editor() {
         });
         $('#gcc-new-speaker').on('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-speaker').click(); } });
 
+        // ── Sermon Shots integration ──
+        if ($('#gcc-shots-video').length) {
+            var shotsHeaders = { 'X-WP-Nonce': sermonSuiteAdmin.restNonce };
+
+            // Load the video library into the dropdown
+            fetch(sermonSuiteAdmin.restUrl + 'shots/videos', { headers: shotsHeaders, credentials: 'same-origin' })
+                .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+                .then(function(res){
+                    var $sel = $('#gcc-shots-video');
+                    if (!res.ok || !Array.isArray(res.j)) {
+                        $sel.html('<option value="">' + ((res.j && res.j.message) || 'Could not load videos') + '</option>');
+                        return;
+                    }
+                    var current = $sel.data('current') || '';
+                    $sel.empty().append($('<option>').val('').text('— Select a video —'));
+                    res.j.forEach(function(v){
+                        $sel.append($('<option>').val(v.id).text(v.title));
+                    });
+                    if (current) $sel.val(String(current));
+                })
+                .catch(function(){ $('#gcc-shots-video').html('<option value="">Could not load videos</option>'); });
+
+            $('#gcc-shots-video').on('change', function(){
+                $('#gcc-shots-video-id').val($(this).val());
+            });
+
+            $('#gcc-shots-import').on('click', function(){
+                var vid = $('#gcc-shots-video').val();
+                var $status = $('#gcc-shots-status');
+                if (!vid) { $status.css('color','#b32d2e').text('Pick a video first.'); return; }
+
+                var types = [];
+                if ($('#gcc-shots-t-summary').is(':checked'))    types.push('summary');
+                if ($('#gcc-shots-t-guide').is(':checked'))      types.push('discussion-guide');
+                if ($('#gcc-shots-t-transcript').is(':checked')) types.push('transcription');
+                if (!types.length) { $status.css('color','#b32d2e').text('Pick at least one content type.'); return; }
+
+                var $btn = $(this).prop('disabled', true).text('Importing…');
+                $status.css('color','#666').text('Fetching content from Sermon Shots…');
+
+                fetch(sermonSuiteAdmin.restUrl + 'shots/content?video_id=' + encodeURIComponent(vid) + '&types=' + types.join(','), { headers: shotsHeaders, credentials: 'same-origin' })
+                    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+                    .then(function(res){
+                        $btn.prop('disabled', false).text('Import from Sermon Shots');
+                        if (!res.ok) {
+                            $status.css('color','#b32d2e').text((res.j && res.j.message) || 'Import failed.');
+                            return;
+                        }
+                        var d = res.j, filled = [], skipped = [];
+                        // Strip HTML tags for textarea fields (stored via wp_kses_post on save)
+                        var toText = function(html){
+                            var el = document.createElement('div');
+                            el.innerHTML = String(html).replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
+                            return el.textContent.replace(/\n{3,}/g, '\n\n').trim();
+                        };
+                        if (d['summary']) {
+                            var $desc = $('#gcc-content');
+                            if (!$desc.val().trim() || confirm('Replace the existing Description with the Sermon Shots summary?')) {
+                                $desc.val(toText(d['summary'])); filled.push('Description');
+                            } else { skipped.push('Description'); }
+                        }
+                        if (d['discussion-guide']) {
+                            var $g = $('#gcc-guide');
+                            if (!$g.val().trim() || confirm('Replace the existing Discussion Guide?')) {
+                                $g.val(toText(d['discussion-guide'])); filled.push('Discussion Guide');
+                            } else { skipped.push('Discussion Guide'); }
+                        }
+                        if (d['transcription']) {
+                            var $t = $('#gcc-transcript');
+                            if (!$t.val().trim() || confirm('Replace the existing Transcript?')) {
+                                $t.val(toText(d['transcription'])); filled.push('Transcript');
+                            } else { skipped.push('Transcript'); }
+                        }
+                        $('#gcc-shots-video-id').val(vid);
+                        var msg = filled.length ? '✅ Imported: ' + filled.join(', ') + '. Review, then Save.' : 'Nothing imported.';
+                        if (d._errors) {
+                            var errs = Object.keys(d._errors).map(function(k){ return k + ': ' + d._errors[k]; });
+                            msg += ' (' + errs.join(' · ') + ')';
+                        }
+                        $status.css('color', filled.length ? '#1a7f37' : '#b32d2e').text(msg);
+                    })
+                    .catch(function(){
+                        $btn.prop('disabled', false).text('Import from Sermon Shots');
+                        $status.css('color','#b32d2e').text('Request failed.');
+                    });
+            });
+        }
+
         // ── Topics: keep hidden input in sync with checkboxes ──
         function syncPicks(listClass, hiddenId) {
             var vals = [];
@@ -636,6 +778,7 @@ function ss_render_sermon_editor() {
                 series_id:$('#gcc-series').val(), series_order:$('#gcc-order').val(),
                 scripture_ref:$('#gcc-scr-ref').val(), scripture_url:$('#gcc-scr-url').val(),
                 sermon_notes:$('#gcc-notes').val(), ss_topics:$('#gcc-topics').val(), ss_speakers:$('#gcc-speakers').val(), sermon_campus:$('#gcc-sermon-campus').val()||0,
+                discussion_guide:$('#gcc-guide').val(), transcript:$('#gcc-transcript').val(), shots_video_id:$('#gcc-shots-video-id').val(),
                 res_label:res_labels, res_url:res_urls, res_type:res_types
             }, function(res){
                 btn.prop('disabled',false).text('Save Sermon');

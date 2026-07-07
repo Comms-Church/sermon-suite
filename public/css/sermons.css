@@ -1541,3 +1541,9 @@
 @media (max-width: 520px) {
     .ss-tax-series-thumb { width: 110px; }
 }
+
+/* Transcript collapsible: cap height, scroll inside */
+.ss-transcript-body {
+    max-height: 420px;
+    overflow-y: auto;
+}

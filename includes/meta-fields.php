@@ -16,6 +16,9 @@ function sermon_suite_register_meta() {
         '_ss_scripture_url'    => [ 'type' => 'string',  'description' => 'Bible Gateway / YouVersion URL' ],
         '_ss_series_order'     => [ 'type' => 'integer', 'description' => 'Message order within series' ],
         '_ss_sermon_notes'     => [ 'type' => 'string',  'description' => 'Sermon outline / notes (HTML)' ],
+        '_ss_discussion_guide' => [ 'type' => 'string',  'description' => 'Small-group discussion guide (HTML)' ],
+        '_ss_transcript'       => [ 'type' => 'string',  'description' => 'Full sermon transcript (HTML)' ],
+        '_ss_shots_video_id'   => [ 'type' => 'string',  'description' => 'Linked Sermon Shots video id' ],
         '_ss_yt_synced'        => [ 'type' => 'string',  'description' => 'YouTube video ID this post was synced from' ],
     ];
 
