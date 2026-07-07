@@ -25,18 +25,28 @@ function sermon_suite_admin_menu() {
     add_submenu_page( 'sermon-suite', 'Import from Series Engine', 'Import CSV', 'manage_options', 'sermon-suite-import',   'sermon_suite_import_page' );
     add_submenu_page( 'sermon-suite', 'Settings',      'Settings', 'manage_options', 'sermon-suite-settings', 'sermon_suite_settings_page' );
     add_submenu_page( 'sermon-suite', 'REST API Docs', 'API Docs', 'manage_options', 'sermon-suite-api-docs', 'sermon_suite_api_docs_page' );
-    // Edit pages — registered for routing, hidden from the visible menu
-    add_submenu_page( 'sermon-suite', 'Edit Sermon', 'Edit Sermon', 'edit_posts', 'ss-edit-sermon', 'ss_render_sermon_editor' );
-    add_submenu_page( 'sermon-suite', 'Edit Series', 'Edit Series', 'edit_posts', 'ss-edit-series', 'ss_render_series_editor' );
-    remove_submenu_page( 'sermon-suite', 'ss-edit-sermon' );
-    remove_submenu_page( 'sermon-suite', 'ss-edit-series' );
+    // Edit pages — hidden admin pages (empty parent = never shown in a menu,
+    // but fully routable via admin.php?page=...). NOTE: do not use the
+    // register-then-remove_submenu_page pattern here; removing the submenu
+    // entry breaks WordPress's parent resolution at access time and locks
+    // users out with "Sorry, you are not allowed to access this page."
+    add_submenu_page( '', 'Edit Sermon', 'Edit Sermon', 'edit_posts', 'ss-edit-sermon', 'ss_render_sermon_editor' );
+    add_submenu_page( '', 'Edit Series', 'Edit Series', 'edit_posts', 'ss-edit-series', 'ss_render_series_editor' );
 }
 
 // ── Keep the Sermons menu highlighted on CPT and taxonomy screens ─────────────
 add_filter( 'parent_file', 'sermon_suite_menu_highlight' );
 function sermon_suite_menu_highlight( $parent_file ) {
-    global $submenu_file, $current_screen;
+    global $submenu_file, $current_screen, $plugin_page;
     if ( ! $current_screen ) return $parent_file;
+
+    // Hidden edit pages: keep the Sermons menu open and highlight the right list.
+    if ( in_array( $plugin_page, [ 'ss-edit-sermon', 'ss-edit-series' ], true ) ) {
+        $submenu_file = ( $plugin_page === 'ss-edit-sermon' )
+            ? 'edit.php?post_type=ss_sermon'
+            : 'edit.php?post_type=ss_series';
+        return 'sermon-suite';
+    }
 
     if ( in_array( $current_screen->post_type, [ 'ss_sermon', 'ss_series' ], true ) ) {
         $parent_file = 'sermon-suite';
