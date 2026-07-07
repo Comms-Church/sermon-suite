@@ -388,23 +388,35 @@ function ss_render_sermon_editor() {
                     <div class="gcc-sidebar-card-header">🏷 People & Topics</div>
                     <div class="gcc-sidebar-card-body">
 
-                        <!-- Speakers -->
+                        <!-- Speaker -->
                         <div class="gcc-field">
-                            <label class="gcc-label">Speaker(s)</label>
-                            <div class="gcc-pick-list" id="gcc-speaker-list">
+                            <label class="gcc-label">Speaker</label>
+                            <?php
+                            // Current speaker name (first, if the sermon has several from an import)
+                            $current_speaker = '';
+                            if ( ! empty( $speaker_ids ) ) {
+                                $first = get_term( $speaker_ids[0], 'ss_speaker' );
+                                if ( $first && ! is_wp_error( $first ) ) $current_speaker = $first->name;
+                            }
+                            ?>
+                            <select id="gcc-speaker-select" class="gcc-select">
+                                <option value="">— Select speaker —</option>
                                 <?php foreach ($all_speakers as $sp): ?>
-                                <label class="gcc-pick-item">
-                                    <input type="checkbox" class="gcc-pick-speaker"
-                                           value="<?php echo esc_attr($sp->name); ?>"
-                                           <?php checked(in_array($sp->term_id, $speaker_ids), true); ?> />
-                                    <span><?php echo esc_html($sp->name); ?></span>
-                                </label>
+                                <option value="<?php echo esc_attr($sp->name); ?>"
+                                    <?php selected($current_speaker, $sp->name); ?>>
+                                    <?php echo esc_html($sp->name); ?>
+                                </option>
                                 <?php endforeach; ?>
-                            </div>
-                            <div class="gcc-add-new-row">
-                                <input type="text" id="gcc-new-speaker" class="gcc-input" placeholder="Add a new speaker…" />
+                                <option value="__add_new__">+ Add new speaker…</option>
+                            </select>
+                            <div class="gcc-add-new-row" id="gcc-speaker-add-row" style="display:none;margin-top:8px;">
+                                <input type="text" id="gcc-new-speaker" class="gcc-input" placeholder="New speaker name…" />
                                 <button type="button" class="gcc-add-new-btn" id="gcc-add-speaker">+ Add</button>
                             </div>
+                            <p style="margin:6px 0 0;font-size:0.75rem;color:#888;">
+                                Manage the list under
+                                <a href="<?php echo admin_url('edit-tags.php?taxonomy=ss_speaker&post_type=ss_sermon'); ?>">Sermons → Speakers</a>
+                            </p>
                             <input type="hidden" id="gcc-speakers" value="<?php echo esc_attr($speakers); ?>" />
                         </div>
 
@@ -425,6 +437,10 @@ function ss_render_sermon_editor() {
                                 <input type="text" id="gcc-new-topic" class="gcc-input" placeholder="Add a new topic…" />
                                 <button type="button" class="gcc-add-new-btn" id="gcc-add-topic">+ Add</button>
                             </div>
+                            <p style="margin:6px 0 0;font-size:0.75rem;color:#888;">
+                                Manage the list under
+                                <a href="<?php echo admin_url('edit-tags.php?taxonomy=ss_topic&post_type=ss_sermon'); ?>">Sermons → Topics</a>
+                            </p>
                             <input type="hidden" id="gcc-topics" value="<?php echo esc_attr($topics); ?>" />
                         </div>
 
@@ -537,35 +553,59 @@ function ss_render_sermon_editor() {
             if (ref) $('#gcc-scr-url').val('https://www.biblegateway.com/passage/?search='+encodeURIComponent(ref)+'&version='+bibleVer);
         });
 
-        // ── Speakers & Topics: keep hidden inputs in sync with checkboxes ──
+        // ── Speaker dropdown: sync hidden input, add-new flow ──
+        $('#gcc-speaker-select').on('change', function(){
+            var v = $(this).val();
+            if (v === '__add_new__') {
+                $('#gcc-speaker-add-row').show();
+                $('#gcc-new-speaker').focus();
+            } else {
+                $('#gcc-speaker-add-row').hide();
+                $('#gcc-speakers').val(v);
+            }
+        });
+        $('#gcc-add-speaker').on('click', function(){
+            var name = $('#gcc-new-speaker').val().trim();
+            if (!name) return;
+            // Reuse an existing option if it matches (case-insensitive)
+            var matched = '';
+            $('#gcc-speaker-select option').each(function(){
+                if ($(this).val() !== '__add_new__' && $(this).val().toLowerCase() === name.toLowerCase()) matched = $(this).val();
+            });
+            if (!matched) {
+                $('<option>').val(name).text(name).insertBefore($('#gcc-speaker-select option[value="__add_new__"]'));
+                matched = name;
+            }
+            $('#gcc-speaker-select').val(matched);
+            $('#gcc-speakers').val(matched);
+            $('#gcc-new-speaker').val('');
+            $('#gcc-speaker-add-row').hide();
+        });
+        $('#gcc-new-speaker').on('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-speaker').click(); } });
+
+        // ── Topics: keep hidden input in sync with checkboxes ──
         function syncPicks(listClass, hiddenId) {
             var vals = [];
             $(listClass + ':checked').each(function(){ vals.push($(this).val()); });
             $(hiddenId).val(vals.join(', '));
         }
-        $(document).on('change', '.gcc-pick-speaker', function(){ syncPicks('.gcc-pick-speaker', '#gcc-speakers'); });
-        $(document).on('change', '.gcc-pick-topic',   function(){ syncPicks('.gcc-pick-topic',   '#gcc-topics'); });
+        $(document).on('change', '.gcc-pick-topic', function(){ syncPicks('.gcc-pick-topic', '#gcc-topics'); });
 
-        // Add-new speaker
+        // Add-new topic
         function addPick(inputId, listId, cls, hiddenId) {
             var name = $(inputId).val().trim();
             if (!name) return;
-            // avoid duplicates (case-insensitive)
             var exists = false;
             $(cls).each(function(){ if ($(this).val().toLowerCase() === name.toLowerCase()) { exists = true; $(this).prop('checked', true); } });
             if (!exists) {
-                var id = 'pick_' + Math.random().toString(36).substr(2,8);
                 var item = $('<label class="gcc-pick-item"><input type="checkbox" class="' + cls.substr(1) + '" value="' + name.replace(/"/g,'&quot;') + '" checked /><span>' + $('<div>').text(name).html() + '</span></label>');
                 $(listId).append(item);
             }
             $(inputId).val('');
             syncPicks(cls, hiddenId);
         }
-        $('#gcc-add-speaker').on('click', function(){ addPick('#gcc-new-speaker', '#gcc-speaker-list', '.gcc-pick-speaker', '#gcc-speakers'); });
-        $('#gcc-add-topic').on('click',   function(){ addPick('#gcc-new-topic',   '#gcc-topic-list',   '.gcc-pick-topic',   '#gcc-topics'); });
-        // Enter key adds instead of submitting
-        $('#gcc-new-speaker').on('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-speaker').click(); } });
-        $('#gcc-new-topic').on('keydown',   function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-topic').click(); } });
+        $('#gcc-add-topic').on('click', function(){ addPick('#gcc-new-topic', '#gcc-topic-list', '.gcc-pick-topic', '#gcc-topics'); });
+        $('#gcc-new-topic').on('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#gcc-add-topic').click(); } });
 
         // Resources
         $('#gcc-add-resource').on('click', function(){

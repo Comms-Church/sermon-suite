@@ -20,6 +20,8 @@ function sermon_suite_admin_menu() {
     add_submenu_page( 'sermon-suite', 'Add Series',  'Add Series',  'edit_posts',        'ss-add-series',  'ss_render_series_editor' );
     add_submenu_page( 'sermon-suite', 'Categories',  'Categories',  'manage_categories', 'edit-tags.php?taxonomy=ss_series_category&post_type=ss_series', '' );
     add_submenu_page( 'sermon-suite', 'Campuses',    'Campuses',    'manage_categories', 'edit-tags.php?taxonomy=ss_campus&post_type=ss_series', '' );
+    add_submenu_page( 'sermon-suite', 'Speakers',    'Speakers',    'manage_categories', 'edit-tags.php?taxonomy=ss_speaker&post_type=ss_sermon', '' );
+    add_submenu_page( 'sermon-suite', 'Topics',      'Topics',      'manage_categories', 'edit-tags.php?taxonomy=ss_topic&post_type=ss_sermon', '' );
     // Tools
     add_submenu_page( 'sermon-suite', 'Shortcode Generator', '⚡ Shortcodes', 'edit_posts', 'sermon-suite-shortcodes', 'sermon_suite_shortcode_generator_page' );
     add_submenu_page( 'sermon-suite', 'Import from Series Engine', 'Import CSV', 'manage_options', 'sermon-suite-import',   'sermon_suite_import_page' );
@@ -53,7 +55,9 @@ function sermon_suite_menu_highlight( $parent_file ) {
         if ( $current_screen->base === 'edit' ) {
             $submenu_file = 'edit.php?post_type=' . $current_screen->post_type;
         } elseif ( $current_screen->base === 'edit-tags' || $current_screen->base === 'term' ) {
-            $submenu_file = 'edit-tags.php?taxonomy=' . $current_screen->taxonomy . '&post_type=ss_series';
+            // Speaker/topic terms live on sermons; category/campus on series.
+            $tax_pt = in_array( $current_screen->taxonomy, [ 'ss_speaker', 'ss_topic' ], true ) ? 'ss_sermon' : 'ss_series';
+            $submenu_file = 'edit-tags.php?taxonomy=' . $current_screen->taxonomy . '&post_type=' . $tax_pt;
         }
     }
     return $parent_file;
