@@ -134,7 +134,9 @@ function sermon_suite_settings_page() {
         $allowed_sizes = [ 'small', 'medium', 'large', 'xlarge' ];
         $size_in = sanitize_key($_POST['text_size'] ?? 'medium');
         update_option('sermon_suite_text_size', in_array($size_in, $allowed_sizes, true) ? $size_in : 'medium');
-        update_option('sermon_suite_shots_api_key', sanitize_text_field($_POST['shots_api_key'] ?? ''));
+        $new_shots_key = sanitize_text_field($_POST['shots_api_key'] ?? '');
+        update_option('sermon_suite_shots_api_key', $new_shots_key);
+        delete_transient('ss_shots_videos_' . substr(md5(trim($new_shots_key)), 0, 8));
         // Brand colors — sanitize as hex
         $color_fields = [
             'sermon_suite_color_accent',
@@ -357,8 +359,19 @@ function sermon_suite_settings_page() {
                                 }).then(function(r){ return r.json().then(function(j){ return {ok: r.ok, j: j}; }); })
                                 .then(function(res){
                                     if (res.ok && res.j && res.j.ok) {
-                                        out.style.color = '#1a7f37';
-                                        out.textContent = '✅ Connected — ' + res.j.video_count + ' video(s) found';
+                                        if (res.j.video_count > 0) {
+                                            out.style.color = '#1a7f37';
+                                            out.textContent = '✅ Connected — ' + res.j.video_count + ' video(s) found';
+                                        } else {
+                                            out.style.color = '#996b00';
+                                            out.textContent = '⚠️ Connected, but 0 videos found.';
+                                            if (res.j.raw_sample) {
+                                                var pre = document.createElement('pre');
+                                                pre.style.cssText = 'margin-top:8px;padding:10px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;font-size:11px;max-width:640px;white-space:pre-wrap;word-break:break-all;';
+                                                pre.textContent = 'API response sample (for troubleshooting):\n' + res.j.raw_sample;
+                                                out.parentNode.appendChild(pre);
+                                            }
+                                        }
                                     } else {
                                         out.style.color = '#b32d2e';
                                         out.textContent = '❌ ' + ((res.j && res.j.message) ? res.j.message : 'Connection failed');

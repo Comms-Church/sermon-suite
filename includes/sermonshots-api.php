@@ -75,39 +75,92 @@ class Sermon_Suite_Shots_API {
 
     /**
      * List the account's videos, normalized to [{id, title}].
-     * Response shapes vary, so unwrap defensively (same approach Sermon
-     * Shots' own plugin takes).
+     *
+     * The /videos endpoint's behavior varies (pagination params, wrapper
+     * keys, nesting), so this tries several request variants and mines the
+     * response deeply for the first plausible list of videos — the same
+     * strategy Sermon Shots' own plugin uses.
      */
     public static function list_videos( $force = false ) {
         $cache_key = 'ss_shots_videos_' . substr( md5( self::get_key() ), 0, 8 );
         if ( ! $force ) {
             $cached = get_transient( $cache_key );
-            if ( false !== $cached ) return $cached;
+            if ( is_array( $cached ) && ! empty( $cached ) ) return $cached;
         }
 
-        $raw = self::request( '/videos' );
-        if ( is_wp_error( $raw ) ) return $raw;
+        $attempts = [
+            [ '/videos',      [] ],
+            [ '/videos',      [ 'take' => 100 ] ],
+            [ '/videos',      [ 'limit' => 100, 'page' => 1 ] ],
+            [ '/videos',      [ 'per_page' => 100 ] ],
+            [ '/videos/list', [] ],
+        ];
 
-        $list = [];
-        if ( is_array( $raw ) ) {
-            if ( isset( $raw[0] ) )                                    $list = $raw;
-            elseif ( isset( $raw['data'] )    && is_array( $raw['data'] ) )    $list = $raw['data'];
-            elseif ( isset( $raw['items'] )   && is_array( $raw['items'] ) )   $list = $raw['items'];
-            elseif ( isset( $raw['videos'] )  && is_array( $raw['videos'] ) )  $list = $raw['videos'];
-            elseif ( isset( $raw['results'] ) && is_array( $raw['results'] ) ) $list = $raw['results'];
+        $last_error = null;
+        self::$last_raw_sample = '';
+
+        foreach ( $attempts as $a ) {
+            $raw = self::request( $a[0], $a[1] );
+            if ( is_wp_error( $raw ) ) { $last_error = $raw; continue; }
+
+            // Keep a small sample of the first successful response for diagnostics.
+            if ( self::$last_raw_sample === '' ) {
+                $enc = wp_json_encode( $raw );
+                self::$last_raw_sample = is_string( $enc ) ? substr( $enc, 0, 600 ) : '';
+            }
+
+            $out = self::extract_videos( $raw );
+            if ( ! empty( $out ) ) {
+                set_transient( $cache_key, $out, 10 * MINUTE_IN_SECONDS );
+                return $out;
+            }
         }
 
-        $out = [];
-        foreach ( $list as $v ) {
-            if ( ! is_array( $v ) ) continue;
-            $id = $v['id'] ?? $v['_id'] ?? $v['videoId'] ?? $v['uuid'] ?? $v['video_id'] ?? null;
-            if ( ! $id ) continue;
-            $title = $v['title'] ?? $v['name'] ?? $v['filename'] ?? ( 'Video ' . substr( (string) $id, 0, 8 ) );
-            $out[] = [ 'id' => (string) $id, 'title' => (string) $title ];
+        if ( $last_error && self::$last_raw_sample === '' ) return $last_error;
+        // Genuinely empty (or unparseable): cache only briefly so fixes and
+        // newly-added videos show up fast.
+        set_transient( $cache_key, [], MINUTE_IN_SECONDS );
+        return [];
+    }
+
+    /** Raw sample of the last /videos response, for diagnostics. */
+    public static $last_raw_sample = '';
+
+    /**
+     * Deep-mine any response structure for the first list that looks like
+     * videos (arrays containing an id-ish key).
+     */
+    private static function extract_videos( $raw ) {
+        $candidates = [];
+
+        // Direct list at the top?
+        if ( is_array( $raw ) && isset( $raw[0] ) && is_array( $raw[0] ) ) {
+            $candidates[] = $raw;
         }
 
-        set_transient( $cache_key, $out, 10 * MINUTE_IN_SECONDS );
-        return $out;
+        // Walk nested wrappers up to 4 levels collecting every list of arrays.
+        $walk = function ( $node, $depth ) use ( &$walk, &$candidates ) {
+            if ( $depth > 4 || ! is_array( $node ) ) return;
+            $is_list = ( $node === [] || array_keys( $node ) === range( 0, count( $node ) - 1 ) );
+            if ( $is_list && isset( $node[0] ) && is_array( $node[0] ) ) {
+                $candidates[] = $node;
+            }
+            foreach ( $node as $v ) $walk( $v, $depth + 1 );
+        };
+        $walk( $raw, 0 );
+
+        foreach ( $candidates as $list ) {
+            $out = [];
+            foreach ( $list as $v ) {
+                if ( ! is_array( $v ) ) continue;
+                $id = $v['id'] ?? $v['_id'] ?? $v['videoId'] ?? $v['uuid'] ?? $v['video_id'] ?? null;
+                if ( ! $id ) continue;
+                $title = $v['title'] ?? $v['name'] ?? $v['filename'] ?? ( 'Video ' . substr( (string) $id, 0, 8 ) );
+                $out[] = [ 'id' => (string) $id, 'title' => (string) $title ];
+            }
+            if ( ! empty( $out ) ) return $out;
+        }
+        return [];
     }
 
     /* ── Content fetch + normalization ────────────────────────── */
@@ -198,7 +251,12 @@ class Sermon_Suite_Shots_API {
     public static function test() {
         $videos = self::list_videos( true );
         if ( is_wp_error( $videos ) ) return $videos;
-        return [ 'ok' => true, 'video_count' => count( $videos ) ];
+        $out = [ 'ok' => true, 'video_count' => count( $videos ) ];
+        if ( count( $videos ) === 0 && self::$last_raw_sample !== '' ) {
+            // Admin-only diagnostic: what did the API actually return?
+            $out['raw_sample'] = self::$last_raw_sample;
+        }
+        return $out;
     }
 }
 
