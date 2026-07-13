@@ -184,7 +184,7 @@ class Sermon_Suite_Shots_API {
                 $errors[ $type ] = $raw->get_error_message();
                 continue;
             }
-            $html = self::normalize_to_html( $raw );
+            $html = self::normalize_to_html( $raw, $type );
             if ( $html !== '' ) $out[ $type ] = $html;
             else $errors[ $type ] = 'No content available yet for this video.';
         }
@@ -194,9 +194,20 @@ class Sermon_Suite_Shots_API {
 
     /**
      * Reduce whatever shape the API returns (string, {content}, {data:{text}},
-     * arrays of items…) to clean paragraph HTML.
+     * arrays of items, or a string containing markdown-fenced JSON) to clean
+     * paragraph HTML.
      */
-    public static function normalize_to_html( $raw ) {
+    public static function normalize_to_html( $raw, $type = '' ) {
+        $raw = self::decode_embedded_json( $raw );
+
+        // Summaries come back as a set of variants (Short / Long / YouTube /
+        // Social Media Teaser). The Description field is for archive cards,
+        // so prefer the Short variant, falling back to Long.
+        if ( $type === 'summary' && is_array( $raw ) ) {
+            $variant = self::pick_variant( $raw, [ 'short', 'summary', 'long' ] );
+            if ( $variant !== '' ) $raw = $variant;
+        }
+
         $texts = [];
         self::collect_texts( $raw, $texts );
         $texts = array_values( array_filter( array_map( 'trim', $texts ) ) );
@@ -209,6 +220,59 @@ class Sermon_Suite_Shots_API {
             $html .= wpautop( $t );
         }
         return trim( wp_kses_post( $html ) );
+    }
+
+    /**
+     * If a value is a string containing JSON (optionally wrapped in
+     * markdown ``` fences), decode it. Applied recursively one level deep.
+     */
+    private static function decode_embedded_json( $raw ) {
+        if ( is_string( $raw ) ) {
+            $s = trim( $raw );
+            // Strip markdown code fences: ```json ... ``` or ``` ... ```
+            if ( strpos( $s, '```' ) === 0 ) {
+                $s = preg_replace( '/^```[a-zA-Z]*\s*/', '', $s );
+                $s = preg_replace( '/```\s*$/', '', $s );
+                $s = trim( $s );
+            }
+            if ( $s !== '' && ( $s[0] === '{' || $s[0] === '[' ) ) {
+                $decoded = json_decode( $s, true );
+                if ( json_last_error() === JSON_ERROR_NONE ) return $decoded;
+            }
+            return $raw;
+        }
+        if ( is_array( $raw ) ) {
+            foreach ( $raw as $k => $v ) {
+                if ( is_string( $v ) && strlen( $v ) > 20 ) {
+                    $raw[ $k ] = self::decode_embedded_json( $v );
+                }
+            }
+        }
+        return $raw;
+    }
+
+    /**
+     * From an array of named variants, return the first matching key
+     * (case-insensitive, ignoring spaces), searching one level of nesting.
+     */
+    private static function pick_variant( array $arr, array $preferred ) {
+        $flat = [];
+        foreach ( $arr as $k => $v ) {
+            if ( is_string( $k ) ) $flat[ strtolower( str_replace( ' ', '', $k ) ) ] = $v;
+            if ( is_array( $v ) ) {
+                foreach ( $v as $k2 => $v2 ) {
+                    if ( is_string( $k2 ) && ! isset( $flat[ strtolower( str_replace( ' ', '', $k2 ) ) ] ) ) {
+                        $flat[ strtolower( str_replace( ' ', '', $k2 ) ) ] = $v2;
+                    }
+                }
+            }
+        }
+        foreach ( $preferred as $want ) {
+            if ( isset( $flat[ $want ] ) && is_string( $flat[ $want ] ) && trim( $flat[ $want ] ) !== '' ) {
+                return trim( $flat[ $want ] );
+            }
+        }
+        return '';
     }
 
     /** Recursively collect text values from common content keys. */
