@@ -525,6 +525,12 @@ function ss_render_sermon_editor() {
                         </div>
                         <button type="button" class="gcc-add-new-btn" id="gcc-shots-import" style="width:100%;">Import from Sermon Shots</button>
                         <p id="gcc-shots-status" style="margin:8px 0 0;font-size:0.78rem;color:#888;"></p>
+                        <div id="gcc-shots-extras" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
+                            <label class="gcc-label" style="margin-bottom:6px;">More from this summary</label>
+                            <button type="button" class="gcc-add-new-btn" id="gcc-shots-long-to-notes" style="width:100%;margin-bottom:6px;display:none;">Use Long summary in Notes</button>
+                            <button type="button" class="gcc-add-new-btn" id="gcc-shots-copy-yt" style="width:100%;margin-bottom:6px;display:none;">Copy YouTube description</button>
+                            <button type="button" class="gcc-add-new-btn" id="gcc-shots-copy-social" style="width:100%;display:none;">Copy social media teaser</button>
+                        </div>
                         <?php endif; ?>
                         <input type="hidden" id="gcc-shots-video-id" value="<?php echo esc_attr($shots_vid); ?>" />
                     </div>
@@ -641,6 +647,33 @@ function ss_render_sermon_editor() {
         if ($('#gcc-shots-video').length) {
             var shotsHeaders = { 'X-WP-Nonce': sermonSuiteAdmin.restNonce };
 
+            function ssCopy(text, $btn, label) {
+                var done = function(){ $btn.text('✅ Copied!'); setTimeout(function(){ $btn.text(label); }, 1600); };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, function(){ window.prompt('Copy this text:', text); });
+                } else {
+                    window.prompt('Copy this text:', text);
+                }
+            }
+            $('#gcc-shots-long-to-notes').on('click', function(){
+                var v = (window._ssShotsVariants || {}).long || '';
+                if (!v) return;
+                var $n = $('#gcc-notes');
+                if (!$n.val().trim() || confirm('Replace the existing Sermon Notes with the Long summary?')) {
+                    $n.val(v);
+                    $('#gcc-shots-status').css('color','#1a7f37').text('✅ Long summary placed in Sermon Notes. Review, then Save.');
+                }
+            });
+            $('#gcc-shots-copy-yt').on('click', function(){
+                var v = (window._ssShotsVariants || {}).youtube || '';
+                if (v) ssCopy(v, $(this), 'Copy YouTube description');
+            });
+            $('#gcc-shots-copy-social').on('click', function(){
+                var vars = window._ssShotsVariants || {};
+                var v = vars.socialmediateaser || vars.social || '';
+                if (v) ssCopy(v, $(this), 'Copy social media teaser');
+            });
+
             // Load the video library into the dropdown
             fetch(sermonSuiteAdmin.restUrl + 'shots/videos', { headers: shotsHeaders, credentials: 'same-origin' })
                 .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
@@ -711,6 +744,14 @@ function ss_render_sermon_editor() {
                             } else { skipped.push('Transcript'); }
                         }
                         $('#gcc-shots-video-id').val(vid);
+                        // Offer the other summary variants
+                        var vars = d.summary_variants || {};
+                        window._ssShotsVariants = vars;
+                        var anyExtra = false;
+                        if (vars.long)                                  { $('#gcc-shots-long-to-notes').show(); anyExtra = true; } else { $('#gcc-shots-long-to-notes').hide(); }
+                        if (vars.youtube)                               { $('#gcc-shots-copy-yt').show();       anyExtra = true; } else { $('#gcc-shots-copy-yt').hide(); }
+                        if (vars.socialmediateaser || vars.social)      { $('#gcc-shots-copy-social').show();   anyExtra = true; } else { $('#gcc-shots-copy-social').hide(); }
+                        $('#gcc-shots-extras').toggle(anyExtra);
                         var msg = filled.length ? '✅ Imported: ' + filled.join(', ') + '. Review, then Save.' : 'Nothing imported.';
                         if (d._errors) {
                             var errs = Object.keys(d._errors).map(function(k){ return k + ': ' + d._errors[k]; });

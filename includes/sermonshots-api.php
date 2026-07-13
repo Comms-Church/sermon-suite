@@ -184,9 +184,13 @@ class Sermon_Suite_Shots_API {
                 $errors[ $type ] = $raw->get_error_message();
                 continue;
             }
+            self::$last_summary_variants = [];
             $html = self::normalize_to_html( $raw, $type );
             if ( $html !== '' ) $out[ $type ] = $html;
             else $errors[ $type ] = 'No content available yet for this video.';
+            if ( $type === 'summary' && ! empty( self::$last_summary_variants ) ) {
+                $out['summary_variants'] = self::$last_summary_variants;
+            }
         }
         if ( $errors ) $out['_errors'] = $errors;
         return $out;
@@ -204,6 +208,7 @@ class Sermon_Suite_Shots_API {
         // Social Media Teaser). The Description field is for archive cards,
         // so prefer the Short variant, falling back to Long.
         if ( $type === 'summary' && is_array( $raw ) ) {
+            self::$last_summary_variants = self::all_variants( $raw );
             $variant = self::pick_variant( $raw, [ 'short', 'summary', 'long' ] );
             if ( $variant !== '' ) $raw = $variant;
         }
@@ -220,6 +225,26 @@ class Sermon_Suite_Shots_API {
             $html .= wpautop( $t );
         }
         return trim( wp_kses_post( $html ) );
+    }
+
+    /** All summary variants from the last summary normalization. */
+    public static $last_summary_variants = [];
+
+    /** Extract every named string variant (one level of nesting). */
+    private static function all_variants( array $arr ) {
+        $out = [];
+        $walk = function( $node ) use ( &$out, &$walk ) {
+            if ( ! is_array( $node ) ) return;
+            foreach ( $node as $k => $v ) {
+                if ( is_string( $k ) && is_string( $v ) && trim( $v ) !== '' ) {
+                    $out[ strtolower( str_replace( ' ', '', $k ) ) ] = trim( $v );
+                } elseif ( is_array( $v ) ) {
+                    $walk( $v );
+                }
+            }
+        };
+        $walk( $arr );
+        return $out;
     }
 
     /**
