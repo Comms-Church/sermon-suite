@@ -95,9 +95,22 @@ npm run screenshots
 
 Writes fresh full-page captures of the live app (sermon library page, admin dashboard, add-sermon editor, shortcode generator, settings) to `screenshots/` — gitignored, regenerable, for marketing/docs use. Send the user any screenshots that changed meaningfully.
 
-## 9. Refresh the comms.church marketing content
+## 9. Refresh the comms.church landing page
 
-If this release added or changed user-facing features, offer to update the Sermon Suite section of comms.church: invoke the `bricks-comms-church` skill to regenerate the relevant page/section JSON with the new version number and feature claims, and hand the user the importable Bricks JSON (plus the fresh screenshots). This part stays human-in-the-loop — the user imports it in Bricks Builder. For a fixes-only patch release, skip this and say so.
+The plugin's public landing page is `https://comms.church/resources/sermon-suite/`, rendered by the theme template `page-sermon-suite.php` in the comms.church theme repo (not Bricks — the site runs a custom theme):
+
+```
+/Users/addisonroberts/Local Sites/commschurch-site/app/public/wp-content/themes/comms-church/
+```
+
+If this release added or changed user-facing features, update that template's feature/install copy to match, then deploy with the theme's local→Kinsta pipeline (commits, pushes to GitHub, and `git pull`s on Kinsta over SSH):
+
+```bash
+cd "/Users/addisonroberts/Local Sites/commschurch-site/app/public/wp-content/themes/comms-church"
+./deploy.sh "Sermon Suite vX.Y.Z — <what changed>"
+```
+
+**Show the user the page diff and get an explicit OK before running `deploy.sh`** — it publishes straight to production. For a fixes-only patch release, skip this step and say so.
 
 ## 10. Report
 
