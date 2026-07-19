@@ -13,7 +13,7 @@ Repo facts:
 - The plugin's built-in updater (`includes/updater.php`) checks GitHub Releases, so every installed site sees the update in **Plugins → Updates** within a day. Nothing else to deploy.
 - Release notes = commit messages since the last tag. Write the release commit message in plain, user-facing language — church admins read it in the WordPress "View details" popup.
 - The zip build in `release.yml` strips dev tooling (`node_modules`, `tests/`, `package*.json`, `playwright.config.js`, `screenshots/`, `test-results/`). If you add a new top-level dev file or folder, add a matching `rm` line there or it ships to every church.
-- Known issue: command-line `git push` may fail with 403 as user `GCCWS01` (wrong keychain credential). If it does, stop and tell the user — they can push from GitHub Desktop, or fix CLI auth once via `gh auth login` after installing the GitHub CLI. Never try to work around auth yourself.
+- Git pushes authenticate through the GitHub CLI (`~/.local/bin/gh`, logged in as AddisonRoberts). If a push ever fails with an auth error, stop and tell the user to re-run `gh auth login` (or `gh auth refresh -s workflow` if the error mentions workflow scope). Never try to work around auth yourself.
 
 ## 1. Preflight
 
