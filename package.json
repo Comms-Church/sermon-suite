@@ -1,0 +1,14 @@
+{
+  "name": "sermon-suite",
+  "private": true,
+  "description": "Dev tooling for the Sermon Suite WordPress plugin — smoke tests + screenshot generation. Not shipped in the plugin zip.",
+  "scripts": {
+    "wp": "wp-playground-cli server --auto-mount --login --port 9400 --blueprint tests/blueprint.json",
+    "test": "playwright test --project=smoke",
+    "screenshots": "playwright test --project=screenshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@wp-playground/cli": "^3.1.45"
+  }
+}

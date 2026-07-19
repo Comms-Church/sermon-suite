@@ -12,6 +12,8 @@ Repo facts:
 - Pushing a tag `vX.Y.Z` triggers `.github/workflows/release.yml`, which builds `sermon-suite.zip` with the correct `sermon-suite/` top-level folder and attaches it to a GitHub Release with auto-generated notes from the commit messages.
 - The plugin's built-in updater (`includes/updater.php`) checks GitHub Releases, so every installed site sees the update in **Plugins → Updates** within a day. Nothing else to deploy.
 - Release notes = commit messages since the last tag. Write the release commit message in plain, user-facing language — church admins read it in the WordPress "View details" popup.
+- The zip build in `release.yml` strips dev tooling (`node_modules`, `tests/`, `package*.json`, `playwright.config.js`, `screenshots/`, `test-results/`). If you add a new top-level dev file or folder, add a matching `rm` line there or it ships to every church.
+- Known issue: command-line `git push` may fail with 403 as user `GCCWS01` (wrong keychain credential). If it does, stop and tell the user — they can push from GitHub Desktop, or fix CLI auth once via `gh auth login` after installing the GitHub CLI. Never try to work around auth yourself.
 
 ## 1. Preflight
 
@@ -26,20 +28,18 @@ git log $(git describe --tags --abbrev=0)..HEAD --oneline  # commits since last 
 - Uncommitted changes are fine — they become part of the release commit. List them so the user knows what's shipping.
 - If there is nothing new since the last tag and no uncommitted changes, say so and stop.
 
-## 2. Sanity-check the plugin loads
-
-There is no test suite, so at minimum lint every PHP file — but only if PHP is installed (`command -v php`). As of July 2026 this Mac does NOT have PHP, so by default:
-
-- Run `git diff $(git describe --tags --abbrev=0)..HEAD --stat` and read through the changed PHP files for obvious breakage (unbalanced braces, missing quotes, half-finished edits).
-- Tell the user lint was skipped because PHP isn't installed, and that `brew install php` would enable real syntax checking for future releases.
-
-If PHP **is** available:
+## 2. Run the smoke suite — green, or no release
 
 ```bash
-find . -name "*.php" -not -path "./.git/*" -exec php -l {} \; | grep -v "No syntax errors"
+npm test
 ```
 
-Any output = a syntax error = no release. Fix it (or report it) first. Never print or claim "all clean" unless php -l actually ran.
+This boots a real WordPress in Node (WordPress Playground, no Docker/PHP needed) with the plugin active and seed data from `tests/blueprint.json`, then runs Playwright smoke tests (`tests/smoke.spec.js`): every REST endpoint, the public shortcode page, a series detail page, a single sermon page, and every wp-admin screen — asserting no PHP fatals/warnings/notices anywhere.
+
+- First run downloads WordPress (~1 min); later runs take ~30s.
+- If `node_modules` is missing, run `npm install` first (if npm hits an EACCES cache error, add `--cache <scratchpad>/npm-cache` — the user's `~/.npm` has root-owned files).
+- **Any failure = stop.** Report which test failed and what it saw. Do not tag.
+- A PHP fatal shows up as page text, not an HTTP error — the suite greps for `Fatal error|Parse error|Warning:|Notice:` in every page body.
 
 ## 3. Pick the version
 
@@ -87,7 +87,19 @@ Success = the release exists and has a `sermon-suite.zip` asset. Also check the 
 curl -s "https://api.github.com/repos/Comms-Church/sermon-suite/actions/runs?per_page=1" | grep -E '"status"|"conclusion"|"html_url"' | head -6
 ```
 
-## 8. Report
+## 8. Regenerate screenshots
+
+```bash
+npm run screenshots
+```
+
+Writes fresh full-page captures of the live app (sermon library page, admin dashboard, add-sermon editor, shortcode generator, settings) to `screenshots/` — gitignored, regenerable, for marketing/docs use. Send the user any screenshots that changed meaningfully.
+
+## 9. Refresh the comms.church marketing content
+
+If this release added or changed user-facing features, offer to update the Sermon Suite section of comms.church: invoke the `bricks-comms-church` skill to regenerate the relevant page/section JSON with the new version number and feature claims, and hand the user the importable Bricks JSON (plus the fresh screenshots). This part stays human-in-the-loop — the user imports it in Bricks Builder. For a fixes-only patch release, skip this and say so.
+
+## 10. Report
 
 Tell the user: the version shipped, the release URL (`https://github.com/Comms-Church/sermon-suite/releases/tag/vX.Y.Z`), and that installed sites will pick it up automatically (or instantly via the "Check for updates" link on their Plugins screen).
 

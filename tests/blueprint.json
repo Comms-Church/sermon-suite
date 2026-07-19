@@ -1,0 +1,9 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "steps": [
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; if ( get_page_by_path( 'sermons' ) ) { return; } $series_id = wp_insert_post([ 'post_type' => 'ss_series', 'post_status' => 'publish', 'post_title' => 'Test Series: Foundations', 'post_content' => 'A test series seeded for the release smoke suite.', 'meta_input' => [ '_ss_series_start_date' => '2026-01-04', '_ss_series_end_date' => '2026-02-08', '_ss_series_featured' => true ] ]); foreach ( [ [ 'Grace That Holds', '2026-01-04', 'John 1:14-17', 1 ], [ 'Built on the Rock', '2026-01-11', 'Matthew 7:24-27', 2 ] ] as $i => $s ) { $sermon_id = wp_insert_post([ 'post_type' => 'ss_sermon', 'post_status' => 'publish', 'post_title' => $s[0], 'meta_input' => [ '_ss_youtube_id' => 'dQw4w9WgXcQ', '_ss_series_id' => $series_id, '_ss_sermon_date' => $s[1], '_ss_scripture_ref' => $s[2], '_ss_series_order' => $s[3] ] ]); wp_set_object_terms( $sermon_id, [ 'Test Speaker' ], 'ss_speaker' ); wp_set_object_terms( $sermon_id, [ 'Faith' ], 'ss_topic' ); } wp_insert_post([ 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Sermons', 'post_name' => 'sermons', 'post_content' => '[ss_latest_hero]\n[ss_sermon_archive]\n[ss_series_grid]' ]); flush_rewrite_rules();"
+    }
+  ]
+}

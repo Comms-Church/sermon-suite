@@ -40,6 +40,15 @@ jobs:
           rm -rf build/sermon-suite/.github
           rm -f  build/sermon-suite/.gitignore
           rm -f  build/sermon-suite/*.md
+          # Dev tooling — never ship in the plugin zip
+          rm -rf build/sermon-suite/node_modules
+          rm -rf build/sermon-suite/tests
+          rm -rf build/sermon-suite/test-results
+          rm -rf build/sermon-suite/playwright-report
+          rm -rf build/sermon-suite/screenshots
+          rm -f  build/sermon-suite/package.json
+          rm -f  build/sermon-suite/package-lock.json
+          rm -f  build/sermon-suite/playwright.config.js
           cd build
           zip -r sermon-suite.zip sermon-suite -q
           echo "=== Built zip contents ==="
