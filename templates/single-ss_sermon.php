@@ -98,7 +98,7 @@ while ( have_posts() ) : the_post();
                             <svg class="ss-notes-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="ss-notes-body" hidden>
-                            <?php echo wp_kses_post($notes); ?>
+                            <?php echo ss_render_rich_text( $notes ); ?>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -114,7 +114,7 @@ while ( have_posts() ) : the_post();
                             <svg class="ss-notes-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="ss-notes-body" hidden>
-                            <?php echo wp_kses_post( wpautop( $guide ) ); ?>
+                            <?php echo ss_render_rich_text( $guide ); ?>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -130,7 +130,7 @@ while ( have_posts() ) : the_post();
                             <svg class="ss-notes-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                         <div class="ss-notes-body ss-transcript-body" hidden>
-                            <?php echo wp_kses_post( wpautop( $transcript ) ); ?>
+                            <?php echo ss_render_rich_text( $transcript ); ?>
                         </div>
                     </div>
                     <?php endif; ?>

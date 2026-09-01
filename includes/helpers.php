@@ -130,3 +130,132 @@ function sermon_suite_archive_url() {
     if ( $page ) return get_permalink($page->ID);
     return home_url('/sermons/');
 }
+
+/**
+ * Render a rich-text sermon field (notes, discussion guide, transcript).
+ *
+ * Sermon Shots returns these as Markdown, and staff often paste Markdown in
+ * by hand, but older guides were written as HTML. Markdown is converted;
+ * anything that already contains block-level HTML is passed through as-is.
+ */
+function ss_render_rich_text( $text ) {
+    $text = (string) $text;
+    if ( trim($text) === '' ) return '';
+
+    // Already HTML (older guides, or pasted from a rich editor) — leave it be.
+    if ( preg_match('/<(p|div|ul|ol|li|h[1-6]|blockquote|table|br)\b[^>]*>/i', $text) ) {
+        return wp_kses_post( wpautop( $text ) );
+    }
+
+    return wp_kses_post( ss_markdown_to_html( $text ) );
+}
+
+/**
+ * Inline Markdown: links, bold, italic, code.
+ */
+function ss_markdown_inline( $text ) {
+    // [label](url) — before emphasis, so underscores in URLs survive.
+    $text = preg_replace_callback(
+        '/\[([^\]]+)\]\(([^)\s]+)\)/',
+        function( $m ) {
+            return '<a href="' . esc_url($m[2]) . '" rel="noopener">' . $m[1] . '</a>';
+        },
+        $text
+    );
+    $text = preg_replace('/`([^`]+)`/',                            '<code>$1</code>',   $text);
+    $text = preg_replace('/\*\*(.+?)\*\*/s',                       '<strong>$1</strong>', $text);
+    $text = preg_replace('/__(.+?)__/s',                           '<strong>$1</strong>', $text);
+    // Single * or _ emphasis, but not mid-word (snake_case) or stray asterisks.
+    $text = preg_replace('/(?<!\*)\*(?!\s)([^*\n]+?)(?<!\s)\*(?!\*)/', '<em>$1</em>',   $text);
+    $text = preg_replace('/(?<![\w_])_(?!\s)([^_\n]+?)(?<!\s)_(?![\w_])/', '<em>$1</em>', $text);
+    return $text;
+}
+
+/**
+ * Block-level Markdown → HTML. Covers the subset Sermon Shots emits:
+ * headings, ordered/unordered lists, blockquotes, rules, paragraphs.
+ */
+function ss_markdown_to_html( $text ) {
+    $lines = explode( "\n", str_replace( ["\r\n", "\r"], "\n", $text ) );
+
+    $html  = '';
+    $list  = '';   // 'ul' | 'ol' while inside a list
+    $para  = [];   // buffered paragraph lines
+    $quote = [];   // buffered blockquote lines
+
+    $close_list = function() use ( &$html, &$list ) {
+        if ( $list ) { $html .= "</{$list}>"; $list = ''; }
+    };
+    $flush_para = function() use ( &$html, &$para ) {
+        if ( $para ) {
+            $html .= '<p>' . ss_markdown_inline( implode(' ', $para) ) . '</p>';
+            $para = [];
+        }
+    };
+    $flush_quote = function() use ( &$html, &$quote ) {
+        if ( $quote ) {
+            $html .= '<blockquote><p>' . ss_markdown_inline( implode(' ', $quote) ) . '</p></blockquote>';
+            $quote = [];
+        }
+    };
+
+    foreach ( $lines as $line ) {
+        $trimmed = trim( $line );
+
+        // Blank line ends any open paragraph or quote (but not a list —
+        // Markdown allows a blank line between list items).
+        if ( $trimmed === '' ) {
+            $flush_para(); $flush_quote();
+            continue;
+        }
+
+        // Heading: # → h2 … #### → h5, capped at h6.
+        if ( preg_match('/^(#{1,6})\s+(.*)$/', $trimmed, $m) ) {
+            $flush_para(); $flush_quote(); $close_list();
+            $tag   = 'h' . min( 6, strlen($m[1]) + 1 );
+            $html .= "<{$tag}>" . ss_markdown_inline( trim($m[2], " #") ) . "</{$tag}>";
+            continue;
+        }
+
+        // Horizontal rule
+        if ( preg_match('/^(-{3,}|\*{3,}|_{3,})$/', $trimmed) ) {
+            $flush_para(); $flush_quote(); $close_list();
+            $html .= '<hr>';
+            continue;
+        }
+
+        // Blockquote
+        if ( preg_match('/^>\s?(.*)$/', $trimmed, $m) ) {
+            $flush_para(); $close_list();
+            $quote[] = $m[1];
+            continue;
+        }
+
+        // Unordered list item
+        if ( preg_match('/^[-*+]\s+(.*)$/', $trimmed, $m) ) {
+            $flush_para(); $flush_quote();
+            if ( $list !== 'ul' ) { $close_list(); $html .= '<ul>'; $list = 'ul'; }
+            $html .= '<li>' . ss_markdown_inline( $m[1] ) . '</li>';
+            continue;
+        }
+
+        // Ordered list item
+        if ( preg_match('/^\d+[.)]\s+(.*)$/', $trimmed, $m) ) {
+            $flush_para(); $flush_quote();
+            if ( $list !== 'ol' ) { $close_list(); $html .= '<ol>'; $list = 'ol'; }
+            $html .= '<li>' . ss_markdown_inline( $m[1] ) . '</li>';
+            continue;
+        }
+
+        // Continuation of a list item wraps into that item; otherwise prose.
+        $flush_quote();
+        if ( $list ) {
+            $html = preg_replace('/<\/li>$/', ' ' . ss_markdown_inline($trimmed) . '</li>', $html, 1);
+            continue;
+        }
+        $para[] = $trimmed;
+    }
+
+    $flush_para(); $flush_quote(); $close_list();
+    return $html;
+}

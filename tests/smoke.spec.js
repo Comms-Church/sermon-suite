@@ -64,6 +64,62 @@ test.describe('Public pages', () => {
   });
 });
 
+test.describe('Rich text rendering (notes / guide / transcript)', () => {
+  // Sermon Shots returns Markdown; older guides are HTML. Both must render.
+  // Opens the sermon page, expands the named collapsible block (they start
+  // closed), and returns the body locator.
+  async function openBlock(page, request, title, blockLabel) {
+    const sermons = await (await request.get('/wp-json/sermon-suite/v1/sermons')).json();
+    const match = sermons.find((s) => (s.title?.rendered || s.title) === title);
+    expect(match, `seeded sermon "${title}" not found`).toBeTruthy();
+    await page.goto(match.permalink || match.link || `/?p=${match.id}`);
+
+    const block = page.locator('.ss-notes-block', { hasText: blockLabel });
+    await block.locator('.ss-notes-toggle').click();
+    const body = block.locator('.ss-notes-body');
+    await body.waitFor({ state: 'visible' });
+    return body;
+  }
+
+  test('Markdown guide renders as HTML, not raw syntax', async ({ page, request }) => {
+    const guide = await openBlock(page, request, 'Grace That Holds', 'Discussion Guide');
+
+    const text = await guide.innerText();
+    // The bug this guards: raw Markdown leaking to visitors.
+    expect(text).not.toContain('##');
+    expect(text).not.toContain('**');
+    expect(text).not.toMatch(/\]\(https?:/); // raw [label](url)
+    expect(text).not.toMatch(/^\s*>\s/m); // raw blockquote marker
+
+    // And the structure it should have produced instead.
+    await expect(guide.locator('h3', { hasText: 'Opening Question' })).toBeVisible();
+    await expect(guide.locator('ol > li')).toHaveCount(3);
+    await expect(guide.locator('ul > li')).toHaveCount(3);
+    await expect(guide.locator('blockquote')).toHaveCount(1);
+    await expect(guide.locator('strong', { hasText: 'John 1:14-17' })).toBeVisible();
+    await expect(guide.locator('em', { hasText: 'receive' })).toBeVisible();
+    await expect(guide.locator('a[href="https://comms.church"]')).toBeVisible();
+  });
+
+  test('legacy HTML guide still renders unchanged', async ({ page, request }) => {
+    const guide = await openBlock(page, request, 'Built on the Rock', 'Discussion Guide');
+
+    await expect(guide.locator('h3', { hasText: 'Legacy HTML Guide' })).toBeVisible();
+    await expect(guide.locator('strong', { hasText: 'HTML' })).toBeVisible();
+    await expect(guide.locator('ul > li')).toHaveCount(1);
+    // Not double-escaped into visible tags.
+    expect(await guide.innerText()).not.toContain('<strong>');
+  });
+
+  test('Markdown sermon notes render as HTML', async ({ page, request }) => {
+    const notes = await openBlock(page, request, 'Grace That Holds', 'Sermon Notes');
+
+    expect(await notes.innerText()).not.toContain('##');
+    await expect(notes.locator('h3, h4')).not.toHaveCount(0);
+    await expect(notes.locator('blockquote')).toHaveCount(1);
+  });
+});
+
 test.describe('Admin pages', () => {
   const adminPages = [
     ['sermon-suite', 'dashboard'],

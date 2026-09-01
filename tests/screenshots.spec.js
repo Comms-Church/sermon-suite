@@ -19,3 +19,18 @@ for (const [path, file] of shots) {
     await page.screenshot({ path: `screenshots/${file}`, fullPage: true });
   });
 }
+
+// The sermon page's collapsible blocks (notes / discussion guide / transcript)
+// start closed, so expand them before capturing.
+test('capture discussion-guide.png', async ({ page, request }) => {
+  const sermons = await (await request.get('/wp-json/sermon-suite/v1/sermons')).json();
+  const withGuide = sermons.find((s) => s.title?.rendered === 'Grace That Holds' || s.title === 'Grace That Holds') || sermons[0];
+  await page.goto(withGuide.permalink || withGuide.link || `/?p=${withGuide.id}`);
+
+  const toggle = page.locator('.ss-notes-toggle', { hasText: 'Discussion Guide' });
+  await toggle.click();
+  const body = toggle.locator('xpath=following-sibling::div[1]');
+  await body.waitFor({ state: 'visible' });
+
+  await body.screenshot({ path: 'screenshots/discussion-guide.png' });
+});
