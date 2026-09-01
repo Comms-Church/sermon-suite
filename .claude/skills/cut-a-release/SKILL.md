@@ -37,11 +37,29 @@ npm test
 This boots a real WordPress in Node (WordPress Playground, no Docker/PHP needed) with the plugin active and seed data from `tests/blueprint.json`, then runs Playwright smoke tests (`tests/smoke.spec.js`): every REST endpoint, the public shortcode page, a series detail page, a single sermon page, and every wp-admin screen — asserting no PHP fatals/warnings/notices anywhere.
 
 - First run downloads WordPress (~1 min); later runs take ~30s.
-- If `node_modules` is missing, run `npm install` first (if npm hits an EACCES cache error, add `--cache <scratchpad>/npm-cache` — the user's `~/.npm` has root-owned files).
+- If `node_modules` is missing, run `npm install` first.
 - **Any failure = stop.** Report which test failed and what it saw. Do not tag.
 - A PHP fatal shows up as page text, not an HTTP error — the suite greps for `Fatal error|Parse error|Warning:|Notice:` in every page body.
 
-## 3. Pick the version
+## 3. Decide: real release, or plain commit?
+
+**Do not bump the version for changes that don't reach the shipped plugin.** Every bump makes each church site show an "update available" for a zip whose behavior is identical — noise for them, and it trains people to ignore update badges.
+
+Check what's actually changing:
+
+```bash
+git diff $(git describe --tags --abbrev=0)..HEAD --stat
+git diff --stat   # plus anything uncommitted
+```
+
+The zip only contains `sermon-suite.php`, `admin/`, `api/`, `blocks/`, `includes/`, `public/`, `templates/`, and `LICENSE`. If **nothing** outside that list changed — edits to this runbook, `tests/`, `playwright.config.js`, `package*.json`, `.github/`, or `*.md` — then this is **not a release**:
+
+- Commit and push the change with a normal message. No version bump, no tag.
+- Say plainly that it shipped as a plain commit and no site will see an update, then stop. Skip every remaining step.
+
+Only continue below when shipped plugin code actually changed. If it's a mix (plugin code *and* tooling), that's a normal release — carry on.
+
+## 3b. Pick the version
 
 - If the user named a version, use it.
 - Otherwise read the current version from `sermon-suite.php` and bump based on what's shipping: bug fixes only → patch (2.1.0 → 2.1.1); new features/settings → minor (2.1.0 → 2.2.0); breaking or major rework → major. State the chosen version and why; only ask if genuinely ambiguous.
