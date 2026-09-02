@@ -131,10 +131,17 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
             $file_map[trim($r[1]??'')] = ['label'=>trim($r[2]??''),'url'=>$url,'type'=>$type];
         }
         foreach ( ($parsed['scripture'] ?? []) as $r ) { if (trim($r[2]??'')) $scripture_map[trim($r[1]??'')] = trim($r[2]); }
-        foreach ( ($parsed['mfm']       ?? []) as $r ) { $msg_files[trim($r[1]??'')][]     = trim($r[2]??''); }
-        foreach ( ($parsed['mtm']       ?? []) as $r ) { $msg_topics[trim($r[1]??'')][]    = trim($r[2]??''); }
-        foreach ( ($parsed['msp']       ?? []) as $r ) { $msg_speakers[trim($r[1]??'')][]  = trim($r[2]??''); }
-        foreach ( ($parsed['scm']       ?? []) as $r ) { $msg_scripture[trim($r[1]??'')][] = trim($r[2]??''); }
+        // Join rows carry their OWN row id in column 1 — the linked ids are in
+        // columns 2 and 3 (same shape as the stm rows handled further down).
+        // Keying these by column 1 silently attaches nothing, since the lookups
+        // below are by message id.
+        //   mfm/mtm/msp: [type, row_id, message_id, other_id]
+        //   scm:         [scm,  row_id, scripture_id, message_id]  ← order flipped
+        //                 in Series Engine's own export for this table only.
+        foreach ( ($parsed['mfm']       ?? []) as $r ) { $msg_files[trim($r[2]??'')][]     = trim($r[3]??''); }
+        foreach ( ($parsed['mtm']       ?? []) as $r ) { $msg_topics[trim($r[2]??'')][]    = trim($r[3]??''); }
+        foreach ( ($parsed['msp']       ?? []) as $r ) { $msg_speakers[trim($r[2]??'')][]  = trim($r[3]??''); }
+        foreach ( ($parsed['scm']       ?? []) as $r ) { $msg_scripture[trim($r[3]??'')][] = trim($r[2]??''); }
 
         $job['file_map']=$file_map; $job['scripture_map']=$scripture_map;
         $job['msg_files']=$msg_files; $job['msg_topics']=$msg_topics;

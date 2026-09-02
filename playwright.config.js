@@ -17,6 +17,12 @@ module.exports = defineConfig({
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.js/ },
     {
+      name: 'importer',
+      testMatch: /importer\.spec\.js/,
+      dependencies: ['setup'],
+      use: { storageState: 'test-results/.auth/admin.json' },
+    },
+    {
       name: 'smoke',
       testMatch: /smoke\.spec\.js/,
       dependencies: ['setup'],

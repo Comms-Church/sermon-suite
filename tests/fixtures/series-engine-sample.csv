@@ -1,0 +1,12 @@
+topic,501,Import Topic Alpha
+topic,502,Import Topic Beta
+speaker,601,Import,Speaker
+file,701,Import Study Guide,https://example.org/import-study-guide.pdf
+scripture,801,Romans 8:28
+series,901,Import Test Series,Series used by the importer regression test.,,,2025-03-01,
+message,1001,Imported Message One,,2025-03-09,,A message used by the importer regression test.,,,,,,https://www.youtube.com/watch?v=dQw4w9WgXcQ,,,,,,,,,,,901,,,,,,,,
+mfm,1,1001,701
+mtm,2,1001,501
+mtm,3,1001,502
+msp,4,1001,601
+scm,5,801,1001
