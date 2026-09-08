@@ -17,6 +17,11 @@ module.exports = defineConfig({
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.js/ },
     {
+      name: 'capabilities',
+      testMatch: /capabilities\.spec\.js/,
+      dependencies: ['setup'],
+    },
+    {
       name: 'publish',
       testMatch: /publish\.spec\.js/,
       dependencies: ['setup'],

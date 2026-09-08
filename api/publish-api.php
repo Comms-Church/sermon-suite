@@ -5,9 +5,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * POST /sermon-suite/v1/sermons/publish
  *
  * Publishes a single sermon from an external automation — the one-at-a-time
- * counterpart to the CSV importer. Same capability gate as the import routes
- * (manage_options), so a WordPress Application Password over HTTP Basic works
- * with no extra secret.
+ * counterpart to the CSV importer. Gated on the publish_via_sermon_api
+ * capability (see includes/roles.php) rather than manage_options, so the
+ * automation can authenticate as a locked-down Sermon API Bot user instead of
+ * an administrator. A WordPress Application Password over HTTP Basic is all
+ * that is needed — no extra secret. The CSV import routes remain admin-only.
  *
  * Storage conventions deliberately match admin/importer.php:
  *   - series is a POST TYPE (ss_series) linked by the _ss_series_id meta,
@@ -31,7 +33,7 @@ function sermon_suite_register_publish_route() {
     register_rest_route( 'sermon-suite/v1', '/sermons/publish', [
         'methods'             => WP_REST_Server::CREATABLE,
         'callback'            => 'ss_rest_publish_sermon',
-        'permission_callback' => function() { return current_user_can('manage_options'); },
+        'permission_callback' => function() { return current_user_can( SS_API_CAP ); },
     ]);
 }
 

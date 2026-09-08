@@ -26,6 +26,7 @@ require_once SERMON_SUITE_DIR . 'includes/meta-fields.php';
 require_once SERMON_SUITE_DIR . 'includes/shortcodes.php';
 require_once SERMON_SUITE_DIR . 'includes/template-loader.php';
 require_once SERMON_SUITE_DIR . 'includes/helpers.php';
+require_once SERMON_SUITE_DIR . 'includes/roles.php';
 require_once SERMON_SUITE_DIR . 'includes/yt-sync.php';
 require_once SERMON_SUITE_DIR . 'includes/bible-data.php';
 require_once SERMON_SUITE_DIR . 'includes/sermonshots-api.php';
@@ -47,6 +48,7 @@ register_deactivation_hook( __FILE__, 'sermon_suite_deactivate' );
 function sermon_suite_activate() {
     sermon_suite_register_post_types();
     sermon_suite_register_taxonomies();
+    sermon_suite_install_api_role();
     flush_rewrite_rules();
 }
 
