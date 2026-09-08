@@ -19,7 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * Calling it twice for the same sermon updates in place rather than creating a
  * duplicate, and only touches fields present in the payload — an omitted key
- * leaves whatever the church has since edited alone.
+ * leaves whatever the church has since edited alone. post_content is the one
+ * exception: it is written on create only, never overwritten on update, since
+ * the sermon body is the field most likely to be edited in the admin. Supplying
+ * a new date re-dates the post so it reshuffles into place.
  */
 
 add_action( 'rest_api_init', 'sermon_suite_register_publish_route' );
@@ -86,12 +89,23 @@ function ss_rest_publish_sermon( WP_REST_Request $request ) {
         $status  = 'updated';
         $post_id = $existing->ID;
 
-        // Only the fields this payload carried. post_date is deliberately left
-        // as-is on update: _ss_sermon_date below is what the plugin reads, and
-        // rewriting post_date would reshuffle a manually re-dated sermon.
+        // post_content is written once, at creation. A re-run of the automation
+        // must not overwrite a body the church has edited by hand since.
         $update = [ 'ID' => $post_id ];
-        if ( $long  !== null ) $update['post_content'] = wp_kses_post($long);
         if ( $short !== null ) $update['post_excerpt'] = sanitize_textarea_field($short);
+
+        // A new date re-dates the sermon so it reshuffles into place: post_date
+        // drives WordPress ordering, _ss_sermon_date (set below) drives the
+        // plugin's own display and series ordering. post_date_gmt and edit_date
+        // are passed explicitly rather than left to core's inference — on WP 7
+        // post_date alone is enough, but this plugin supports 6.0+, and the
+        // explicit GMT value is correct regardless of the site's timezone.
+        if ( $date ) {
+            $update['post_date']     = $date . ' 00:00:00';
+            $update['post_date_gmt'] = get_gmt_from_date( $date . ' 00:00:00' );
+            $update['edit_date']     = true;
+        }
+
         if ( count($update) > 1 ) {
             $res = wp_update_post($update, true);
             if ( is_wp_error($res) ) return $res;

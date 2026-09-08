@@ -94,6 +94,28 @@ test('publishes a sermon, then updates it in place without duplicating', async (
   expect(sermon.youtube_id, 'youtube wiped by partial payload').toBe('dQw4w9WgXcQ');
   expect(sermon.series_title, 'series wiped by partial payload').toBe(`Publish Probe Series ${runId}`);
   expect(sermon.resources.length, 'resources wiped by partial payload').toBeGreaterThan(0);
+
+  // ── body is write-once; a new date re-dates and reshuffles ───────────────
+  const redated = await publish(page, nonce, {
+    sermon_title: title,
+    date: '2019-06-15',
+    long_description: '<p>REWRITTEN BODY that must never land.</p>',
+  });
+  const redatedBody = await redated.json();
+  expect(redatedBody.status).toBe('updated');
+  expect(redatedBody.post_id).toBe(postId);
+
+  sermon = await fetchSermon(page, postId);
+  expect(sermon.date, '_ss_sermon_date did not follow the new date').toBe('2019-06-15');
+
+  // post_date drives WordPress ordering, so it has to move too for the sermon
+  // to actually reshuffle.
+  const core = await (await page.request.get(`/wp-json/wp/v2/ss_sermon/${postId}`)).json();
+  expect(core.date, 'post_date did not move, so the sermon would not reshuffle').toContain('2019-06-15');
+
+  // The body was set at creation and must have survived the re-run.
+  expect(core.content.rendered).toContain('Long body from the automation');
+  expect(core.content.rendered, 'post_content was overwritten on update').not.toContain('REWRITTEN BODY');
 });
 
 test('rejects a payload with no sermon_title', async ({ page }) => {
