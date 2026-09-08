@@ -197,9 +197,35 @@ function ss_rest_publish_sermon( WP_REST_Request $request ) {
         }
     }
 
-    return rest_ensure_response([
+    // Discussion guide, auto-imported from Sermon Shots — the automation
+    // equivalent of the admin editor's "Import from Sermon Shots" button.
+    // Writes the same _ss_discussion_guide meta the editor writes, using the
+    // same class and endpoint (GET /video/{id}/discussion-guide), so the
+    // rendered sermon page can't tell the two apart. Non-fatal on failure:
+    // a Sermon Shots hiccup shouldn't block the sermon itself from
+    // publishing, so any error is reported back rather than thrown.
+    $shots_warning = null;
+    if ( $video_id = $field('sermonshots_video_id') ) {
+        if ( ! Sermon_Suite_Shots_API::has_key() ) {
+            $shots_warning = 'sermonshots_video_id was supplied but no Sermon Shots API key is configured (Sermons -> Settings); discussion guide was not imported.';
+        } else {
+            $content = Sermon_Suite_Shots_API::get_content( $video_id, [ 'discussion-guide' ] );
+            if ( is_wp_error( $content ) ) {
+                $shots_warning = 'Sermon Shots discussion guide import failed: ' . $content->get_error_message();
+            } elseif ( ! empty( $content['discussion-guide'] ) ) {
+                update_post_meta( $post_id, '_ss_discussion_guide', wp_kses_post( $content['discussion-guide'] ) );
+            } elseif ( ! empty( $content['_errors']['discussion-guide'] ) ) {
+                $shots_warning = 'Sermon Shots: ' . $content['_errors']['discussion-guide'];
+            }
+        }
+    }
+
+    $response = [
         'post_id'   => (int) $post_id,
         'status'    => $status,
         'edit_link' => get_edit_post_link($post_id, 'raw'),
-    ]);
+    ];
+    if ( $shots_warning ) $response['warning'] = $shots_warning;
+
+    return rest_ensure_response( $response );
 }
