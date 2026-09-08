@@ -4,7 +4,7 @@
   "description": "Dev tooling for the Sermon Suite WordPress plugin \u2014 smoke tests + screenshot generation. Not shipped in the plugin zip.",
   "scripts": {
     "wp": "wp-playground-cli server --auto-mount --login --port 9400 --blueprint tests/blueprint.json",
-    "test": "playwright test --project=smoke --project=importer",
+    "test": "playwright test --project=smoke --project=importer --project=publish",
     "screenshots": "playwright test --project=screenshots"
   },
   "devDependencies": {

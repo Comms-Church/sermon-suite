@@ -20,6 +20,7 @@ function sermon_suite_register_meta() {
         '_ss_transcript'       => [ 'type' => 'string',  'description' => 'Full sermon transcript (HTML)' ],
         '_ss_shots_video_id'   => [ 'type' => 'string',  'description' => 'Linked Sermon Shots video id' ],
         '_ss_yt_synced'        => [ 'type' => 'string',  'description' => 'YouTube video ID this post was synced from' ],
+        '_ss_social_teaser'    => [ 'type' => 'string',  'description' => 'Short social/promo teaser (set by the publish endpoint)' ],
     ];
 
     foreach ( $sermon_fields as $key => $args ) {

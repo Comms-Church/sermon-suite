@@ -30,6 +30,7 @@ require_once SERMON_SUITE_DIR . 'includes/yt-sync.php';
 require_once SERMON_SUITE_DIR . 'includes/bible-data.php';
 require_once SERMON_SUITE_DIR . 'includes/sermonshots-api.php';
 require_once SERMON_SUITE_DIR . 'api/rest-api.php';
+require_once SERMON_SUITE_DIR . 'api/publish-api.php';
 if ( is_admin() ) {
     require_once SERMON_SUITE_DIR . 'includes/updater.php';
 }
