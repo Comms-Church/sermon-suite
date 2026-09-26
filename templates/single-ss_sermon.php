@@ -64,6 +64,9 @@ while ( have_posts() ) : the_post();
                     </div>
                     <?php endif; ?>
 
+                    <!-- Spotify -->
+                    <?php echo ss_spotify_embed_html( $sermon_id ); ?>
+
                     <!-- Title + byline -->
                     <h1 class="ss-sermon-title"><?php the_title(); ?></h1>
                     <div class="ss-sermon-byline">

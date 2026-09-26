@@ -10,6 +10,7 @@ function sermon_suite_register_meta() {
 
     $sermon_fields = [
         '_ss_youtube_id'       => [ 'type' => 'string',  'description' => 'YouTube video ID or full URL' ],
+        '_ss_spotify_url'      => [ 'type' => 'string',  'description' => 'Spotify episode/show URL, URI, or bare id' ],
         '_ss_series_id'        => [ 'type' => 'integer', 'description' => 'Related ss_series post ID' ],
         '_ss_sermon_date'      => [ 'type' => 'string',  'description' => 'Sermon date (YYYY-MM-DD)' ],
         '_ss_scripture_ref'    => [ 'type' => 'string',  'description' => 'Primary scripture reference text' ],

@@ -134,6 +134,20 @@ function ss_rest_publish_sermon( WP_REST_Request $request ) {
         if ( $yt_id ) update_post_meta($post_id, '_ss_youtube_id', $yt_id);
     }
 
+    // Spotify — stored raw and normalised on read, same as the YouTube field.
+    // Rejected rather than silently dropped, so a malformed link in the Make
+    // scenario surfaces instead of quietly producing a sermon with no player.
+    if ( $spotify = $field('spotify_url') ) {
+        if ( ! ss_get_spotify_ref( $spotify ) ) {
+            return new WP_Error(
+                'bad_spotify',
+                'spotify_url is not a recognisable Spotify episode or show reference.',
+                [ 'status' => 400 ]
+            );
+        }
+        update_post_meta( $post_id, '_ss_spotify_url', $spotify );
+    }
+
     // Series: an ss_series POST, referenced by id. Created if it doesn't exist
     // yet, matching how the importer creates series before linking sermons.
     if ( $series_name = $field('series_name') ) {

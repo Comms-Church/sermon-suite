@@ -93,6 +93,7 @@ function ss_ajax_save_sermon() {
 
     $metas = [
         '_ss_youtube_id'    => sanitize_text_field($_POST['youtube_id']    ?? ''),
+        '_ss_spotify_url'   => sanitize_text_field($_POST['spotify_url']   ?? ''),
         '_ss_sermon_date'   => sanitize_text_field($_POST['sermon_date']   ?? ''),
         '_ss_series_id'     => absint($_POST['series_id']                  ?? 0),
         '_ss_series_order'  => absint($_POST['series_order']               ?? 0),
@@ -189,6 +190,7 @@ function ss_render_sermon_editor() {
     $content    = $is_edit ? $post->post_content : '';
     $status     = $is_edit ? $post->post_status  : 'publish';
     $youtube    = $is_edit ? get_post_meta($post_id,'_ss_youtube_id',   true) : '';
+    $spotify    = $is_edit ? get_post_meta($post_id,'_ss_spotify_url',  true) : '';
     $date       = $is_edit ? get_post_meta($post_id,'_ss_sermon_date',  true) : '';
     $series_id  = $is_edit ? (int)get_post_meta($post_id,'_ss_series_id',    true) : 0;
     $order      = $is_edit ? (int)get_post_meta($post_id,'_ss_series_order', true) : '';
@@ -314,9 +316,9 @@ function ss_render_sermon_editor() {
             <!-- ── SIDEBAR ──────────────────────────────────── -->
             <div class="gcc-editor-sidebar">
 
-                <!-- Video -->
+                <!-- Video & Audio -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🎬 Video</div>
+                    <div class="gcc-sidebar-card-header">🎬 Video &amp; Audio</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">YouTube URL or Video ID</label>
@@ -326,6 +328,15 @@ function ss_render_sermon_editor() {
                         </div>
                         <div class="gcc-yt-preview" id="gcc-yt-preview" style="display:<?php echo $vid_id?'block':'none';?>;">
                             <?php if ($vid_id): ?><img src="https://img.youtube.com/vi/<?php echo esc_attr($vid_id); ?>/mqdefault.jpg" /><?php endif; ?>
+                        </div>
+                        <div class="gcc-field">
+                            <label class="gcc-label">Spotify Episode Link</label>
+                            <input type="text" id="gcc-spotify" class="gcc-input"
+                                   value="<?php echo esc_attr($spotify); ?>"
+                                   placeholder="https://open.spotify.com/episode/…" />
+                            <p class="gcc-label-hint" style="text-transform:none;font-weight:400;">
+                                Optional. Adds a Spotify player to the sermon page. A show link works too.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -815,7 +826,7 @@ function ss_render_sermon_editor() {
             $.post(ajaxurl, {
                 action:'ss_save_sermon', nonce:'<?php echo wp_create_nonce("ss_custom_editor"); ?>',
                 post_id:$('#gcc-post-id').val(), title:$('#gcc-title').val(), content:$('#gcc-content').val(),
-                status:$('#gcc-status').val(), youtube_id:$('#gcc-youtube').val(), sermon_date:$('#gcc-date').val(),
+                status:$('#gcc-status').val(), youtube_id:$('#gcc-youtube').val(), spotify_url:$('#gcc-spotify').val(), sermon_date:$('#gcc-date').val(),
                 series_id:$('#gcc-series').val(), series_order:$('#gcc-order').val(),
                 scripture_ref:$('#gcc-scr-ref').val(), scripture_url:$('#gcc-scr-url').val(),
                 sermon_notes:$('#gcc-notes').val(), ss_topics:$('#gcc-topics').val(), ss_speakers:$('#gcc-speakers').val(), sermon_campus:$('#gcc-sermon-campus').val()||0,

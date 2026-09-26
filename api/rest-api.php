@@ -252,6 +252,7 @@ function ss_format_sermon_for_api( $post ) {
     $youtube_id  = ss_get_youtube_id($youtube_raw);
     $series_id   = (int) get_post_meta($post->ID, '_ss_series_id', true);
     $series_title = $series_id ? get_the_title($series_id) : '';
+    $spotify_ref  = ss_get_spotify_ref( get_post_meta($post->ID, '_ss_spotify_url', true) );
 
     return [
         'id'            => $post->ID,
@@ -266,6 +267,10 @@ function ss_format_sermon_for_api( $post ) {
         'youtube_id'    => $youtube_id,
         'youtube_embed' => $youtube_id ? "https://www.youtube.com/embed/{$youtube_id}" : '',
         'youtube_url'   => $youtube_id ? "https://youtu.be/{$youtube_id}" : '',
+        'spotify_id'    => $spotify_ref['id']   ?? '',
+        'spotify_type'  => $spotify_ref['type'] ?? '',
+        'spotify_embed' => ss_spotify_embed_url( $spotify_ref ),
+        'spotify_url'   => ss_spotify_public_url( $spotify_ref ),
         'thumbnail'     => $youtube_id ? ss_youtube_thumb($youtube_id) : '',
         'scripture_ref' => get_post_meta($post->ID, '_ss_scripture_ref', true),
         'scripture_url' => get_post_meta($post->ID, '_ss_scripture_url', true),

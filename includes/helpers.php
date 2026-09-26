@@ -26,6 +26,74 @@ function ss_youtube_thumb( $video_id, $size = 'hqdefault' ) {
 }
 
 /**
+ * Parse a Spotify episode or show reference out of whatever was pasted in.
+ *
+ * Mirrors ss_get_youtube_id(): the raw value is stored as-is and normalised on
+ * read, so an editor can paste a share link, an app URI, or a bare id.
+ * Accepts:
+ *   https://open.spotify.com/episode/{id}      (with any query string)
+ *   https://open.spotify.com/intl-de/show/{id} (locale-prefixed share links)
+ *   spotify:episode:{id}
+ *   {id}                                       (bare, assumed to be an episode)
+ *
+ * Returns [ 'type' => 'episode'|'show', 'id' => '...' ], or null if there is
+ * nothing usable. Spotify ids are 22 base62 characters.
+ */
+function ss_get_spotify_ref( $value ) {
+    $value = trim( (string) $value );
+    if ( $value === '' ) return null;
+
+    // spotify:episode:ID / spotify:show:ID
+    if ( preg_match('~^spotify:(episode|show):([A-Za-z0-9]{22})$~', $value, $m) ) {
+        return [ 'type' => $m[1], 'id' => $m[2] ];
+    }
+    // open.spotify.com/episode/ID, optionally locale-prefixed (/intl-de/)
+    if ( preg_match('~open\.spotify\.com/(?:[a-z-]+/)?(episode|show)/([A-Za-z0-9]{22})~', $value, $m) ) {
+        return [ 'type' => $m[1], 'id' => $m[2] ];
+    }
+    // Bare id — no way to tell episode from show, and a sermon is an episode.
+    if ( preg_match('~^[A-Za-z0-9]{22}$~', $value) ) {
+        return [ 'type' => 'episode', 'id' => $value ];
+    }
+    return null;
+}
+
+/**
+ * Embed URL for a reference from ss_get_spotify_ref().
+ */
+function ss_spotify_embed_url( $ref ) {
+    if ( ! is_array($ref) || empty($ref['id']) ) return '';
+    $type = ( $ref['type'] ?? 'episode' ) === 'show' ? 'show' : 'episode';
+    return 'https://open.spotify.com/embed/' . $type . '/' . $ref['id'];
+}
+
+/**
+ * Public (non-embed) Spotify URL, for a plain "listen on Spotify" link.
+ */
+function ss_spotify_public_url( $ref ) {
+    if ( ! is_array($ref) || empty($ref['id']) ) return '';
+    $type = ( $ref['type'] ?? 'episode' ) === 'show' ? 'show' : 'episode';
+    return 'https://open.spotify.com/' . $type . '/' . $ref['id'];
+}
+
+/**
+ * Render the Spotify player for a sermon. Returns '' when the sermon has none,
+ * so callers can drop it in unconditionally.
+ */
+function ss_spotify_embed_html( $sermon_id, $class = 'ss-spotify-wrap' ) {
+    $ref = ss_get_spotify_ref( get_post_meta( $sermon_id, '_ss_spotify_url', true ) );
+    if ( ! $ref ) return '';
+    $src = ss_spotify_embed_url( $ref );
+    // Spotify's own embed is a fixed-height audio player (152px), not a 16:9
+    // video, so it gets its own wrapper rather than the video aspect box.
+    return '<div class="' . esc_attr($class) . '">'
+         . '<iframe src="' . esc_url($src) . '" height="152" frameborder="0" '
+         . 'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" '
+         . 'loading="lazy" title="' . esc_attr__( 'Spotify player', 'sermon-suite' ) . '"></iframe>'
+         . '</div>';
+}
+
+/**
  * Build a Bible Gateway URL for a scripture reference.
  */
 function ss_bible_gateway_url( $ref, $version = 'NIV' ) {

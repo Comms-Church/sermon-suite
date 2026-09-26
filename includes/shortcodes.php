@@ -324,6 +324,8 @@ function ss_sc_sermon_player( $atts ) {
         </div>
         <?php endif; ?>
 
+        <?php echo ss_spotify_embed_html( $id, 'gcc-spotify-wrap' ); ?>
+
         <?php if ($scripture) : ?>
         <div class="gcc-sermon-scripture">
             <?php if ($scrip_url) : ?>
