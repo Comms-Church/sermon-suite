@@ -130,6 +130,12 @@ function sermon_suite_settings_page() {
         update_option('sermon_suite_bible_version',   sanitize_text_field($_POST['bible_version']    ?? 'NIV'));
         update_option('sermon_suite_archive_slug',    sanitize_title($_POST['archive_slug']           ?? 'sermons'));
         update_option('sermon_suite_yt_api_key',      sanitize_text_field($_POST['yt_api_key']        ?? ''));
+        $new_sp_id     = sanitize_text_field($_POST['spotify_client_id']     ?? '');
+        $new_sp_secret = sanitize_text_field($_POST['spotify_client_secret'] ?? '');
+        update_option('sermon_suite_spotify_client_id',     $new_sp_id);
+        update_option('sermon_suite_spotify_client_secret', $new_sp_secret);
+        // Credentials changed — drop any cached access token.
+        delete_transient('ss_spotify_token');
         update_option('sermon_suite_page_id',         absint($_POST['sermons_page_id'] ?? 0));
         $allowed_sizes = [ 'small', 'medium', 'large', 'xlarge' ];
         $size_in = sanitize_key($_POST['text_size'] ?? 'medium');
@@ -164,6 +170,8 @@ function sermon_suite_settings_page() {
     $sermons_page_id = (int) get_option('sermon_suite_page_id', 0);
     $text_size       = get_option('sermon_suite_text_size', 'medium');
     $shots_api_key   = get_option('sermon_suite_shots_api_key', '');
+    $sp_client_id    = get_option('sermon_suite_spotify_client_id', '');
+    $sp_secret       = get_option('sermon_suite_spotify_client_secret', '');
     $all_pages       = get_posts(['post_type'=>'page','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'publish']);
     $versions = ['NIV','ESV','KJV','NLT','NASB','MSG','CSB'];
 
@@ -328,6 +336,30 @@ function sermon_suite_settings_page() {
                             </a>
                             Enable the <strong>YouTube Data API v3</strong>, create credentials → API Key.
                         </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Spotify Client ID</th>
+                    <td>
+                        <input type="text" name="spotify_client_id"
+                               value="<?php echo esc_attr($sp_client_id); ?>"
+                               class="regular-text" autocomplete="off" />
+                        <p class="description">
+                            Needed only for <strong>Spotify show sync</strong> (bulk-importing a podcast's episodes
+                            as sermons). Create a free app at
+                            <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>
+                            and copy its Client ID and Secret here. No redirect URI is required.
+                            Adding a Spotify player to an individual sermon does <em>not</em> need this.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Spotify Client Secret</th>
+                    <td>
+                        <input type="password" name="spotify_client_secret"
+                               value="<?php echo esc_attr($sp_secret); ?>"
+                               class="regular-text" autocomplete="off" />
+                        <p class="description">Stored server-side and never exposed to visitors.</p>
                     </td>
                 </tr>
                 <tr>

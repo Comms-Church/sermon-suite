@@ -28,6 +28,7 @@ require_once SERMON_SUITE_DIR . 'includes/template-loader.php';
 require_once SERMON_SUITE_DIR . 'includes/helpers.php';
 require_once SERMON_SUITE_DIR . 'includes/roles.php';
 require_once SERMON_SUITE_DIR . 'includes/yt-sync.php';
+require_once SERMON_SUITE_DIR . 'includes/spotify-sync.php';
 require_once SERMON_SUITE_DIR . 'includes/bible-data.php';
 require_once SERMON_SUITE_DIR . 'includes/sermonshots-api.php';
 require_once SERMON_SUITE_DIR . 'api/rest-api.php';

@@ -187,7 +187,7 @@ function ss_sc_sermon_archive( $atts ) {
                 <div class="gcc-series-sermon-rows">
                     <?php foreach ($shown as $sermon) :
                         $yt_id    = ss_get_youtube_id(get_post_meta($sermon->ID, '_ss_youtube_id', true));
-                        $thumb    = $yt_id ? ss_youtube_thumb($yt_id, 'mqdefault') : '';
+                        $thumb    = $yt_id ? ss_youtube_thumb($yt_id, 'mqdefault') : ss_spotify_thumb($sermon->ID);
                         $s_date   = ss_format_sermon_date(get_post_meta($sermon->ID, '_ss_sermon_date', true));
                         $speakers = implode(', ', wp_get_post_terms($sermon->ID, 'ss_speaker', ['fields'=>'names']));
                         $scr      = get_post_meta($sermon->ID, '_ss_scripture_ref', true);
@@ -597,7 +597,7 @@ function ss_sc_topics( $atts ) {
 
 function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
     $youtube_id  = ss_get_youtube_id(get_post_meta($sermon_id, '_ss_youtube_id', true));
-    $thumb       = $youtube_id ? ss_youtube_thumb($youtube_id) : '';
+    $thumb       = $youtube_id ? ss_youtube_thumb($youtube_id) : ss_spotify_thumb($sermon_id);
     $date        = ss_format_sermon_date(get_post_meta($sermon_id, '_ss_sermon_date', true));
     $speakers    = wp_get_post_terms($sermon_id, 'ss_speaker', ['fields' => 'names']);
     $scripture   = get_post_meta($sermon_id, '_ss_scripture_ref', true);
@@ -691,7 +691,8 @@ function ss_sc_latest_hero( $atts ) {
     $sermon     = $sermons[0];
     $sermon_id  = $sermon->ID;
     $youtube_id = ss_get_youtube_id( get_post_meta($sermon_id, '_ss_youtube_id', true) );
-    $thumb      = $youtube_id ? ss_youtube_thumb($youtube_id, 'maxresdefault') : ss_get_series_image( (int)get_post_meta($sermon_id, '_ss_series_id', true) );
+    $thumb      = $youtube_id ? ss_youtube_thumb($youtube_id, 'maxresdefault')
+                : ( ss_spotify_thumb($sermon_id) ?: ss_get_series_image( (int)get_post_meta($sermon_id, '_ss_series_id', true) ) );
     $series_id  = (int) get_post_meta($sermon_id, '_ss_series_id', true);
     $series     = $series_id ? get_post($series_id) : null;
     $date       = ss_format_sermon_date( get_post_meta($sermon_id, '_ss_sermon_date', true) );

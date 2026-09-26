@@ -11,6 +11,7 @@ function sermon_suite_register_meta() {
     $sermon_fields = [
         '_ss_youtube_id'       => [ 'type' => 'string',  'description' => 'YouTube video ID or full URL' ],
         '_ss_spotify_url'      => [ 'type' => 'string',  'description' => 'Spotify episode/show URL, URI, or bare id' ],
+        '_ss_spotify_synced'   => [ 'type' => 'string',  'description' => 'Spotify episode id this post was synced from' ],
         '_ss_series_id'        => [ 'type' => 'integer', 'description' => 'Related ss_series post ID' ],
         '_ss_sermon_date'      => [ 'type' => 'string',  'description' => 'Sermon date (YYYY-MM-DD)' ],
         '_ss_scripture_ref'    => [ 'type' => 'string',  'description' => 'Primary scripture reference text' ],
@@ -43,6 +44,8 @@ function sermon_suite_register_meta() {
         '_ss_series_featured'     => [ 'type' => 'boolean', 'description' => 'Feature on homepage' ],
         '_ss_series_yt_playlist'  => [ 'type' => 'string',  'description' => 'YouTube playlist URL or ID' ],
         '_ss_series_yt_last_sync' => [ 'type' => 'string',  'description' => 'Timestamp of last YouTube sync' ],
+        '_ss_series_spotify_show'      => [ 'type' => 'string',  'description' => 'Spotify show URL or id' ],
+        '_ss_series_spotify_last_sync' => [ 'type' => 'string',  'description' => 'Timestamp of last Spotify sync' ],
     ];
 
     foreach ( $series_fields as $key => $args ) {
@@ -107,6 +110,15 @@ function sermon_suite_add_meta_boxes() {
         'ss_series_yt_sync',
         '🔄 YouTube Playlist Sync',
         'sermon_suite_render_yt_sync_box',
+        'ss_series',
+        'normal',
+        'default'
+    );
+
+    add_meta_box(
+        'ss_series_spotify_sync',
+        '🎧 Spotify Show Sync',
+        'sermon_suite_render_spotify_sync_box',
         'ss_series',
         'normal',
         'default'
@@ -568,6 +580,7 @@ function sermon_suite_save_meta( $post_id, $post ) {
             'ss_series_image_sm'    => '_ss_series_image_sm',
             'ss_series_image_lg'    => '_ss_series_image_lg',
             'ss_series_yt_playlist' => '_ss_series_yt_playlist',
+            'ss_series_spotify_show' => '_ss_series_spotify_show',
         ];
         foreach ( $sf as $input => $meta_key ) {
             if ( isset($_POST[$input]) ) {
@@ -585,4 +598,98 @@ function sermon_suite_enqueue_media_uploader( $hook ) {
     if ( in_array($hook, ['post.php','post-new.php']) && $screen && $screen->post_type === 'ss_series' ) {
         wp_enqueue_media();
     }
+}
+
+// ── Spotify Show Sync Box ─────────────────────────────────────────────────────
+function sermon_suite_render_spotify_sync_box( $post ) {
+    $show      = get_post_meta( $post->ID, '_ss_series_spotify_show',      true );
+    $last_sync = get_post_meta( $post->ID, '_ss_series_spotify_last_sync', true );
+    $has_creds = Sermon_Suite_Spotify_API::has_credentials();
+    ?>
+    <p class="description" style="margin-bottom:12px;">
+        Paste a Spotify <strong>show</strong> link and click <strong>Sync Now</strong>.
+        The plugin creates a draft sermon for each episode it finds, with the Spotify
+        player already attached. Episodes already synced are never duplicated, and
+        anything you've edited since (scripture, resources, notes) is preserved.
+    </p>
+    <?php if ( ! $has_creds ) : ?>
+    <div class="notice notice-warning inline" style="margin:0 0 12px;">
+        <p>⚠️ No Spotify Client ID/Secret set.
+           <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add them in Settings</a>
+           to enable show sync. (Episode artwork works without them.)</p>
+    </div>
+    <?php endif; ?>
+
+    <table class="form-table gcc-meta-table" style="margin-bottom:0;">
+        <tr>
+            <th><label for="ss_series_spotify_show">Spotify Show Link</label></th>
+            <td>
+                <input type="text" id="ss_series_spotify_show" name="ss_series_spotify_show"
+                       value="<?php echo esc_attr($show); ?>"
+                       class="large-text"
+                       placeholder="https://open.spotify.com/show/…" />
+                <p class="description">The show, not a single episode.</p>
+            </td>
+        </tr>
+    </table>
+
+    <?php if ( $last_sync ) : ?>
+    <p style="color:#666;font-size:0.85rem;margin:8px 0 0 210px;">
+        Last synced: <?php echo esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime($last_sync) ) ); ?>
+    </p>
+    <?php endif; ?>
+
+    <div style="margin-top:16px; margin-left:210px;">
+        <button type="button" id="gcc-sp-sync-btn" class="button button-primary"
+                data-series-id="<?php echo (int) $post->ID; ?>"
+                <?php echo ! $has_creds ? 'disabled' : ''; ?>>
+            🎧 Sync Show Now
+        </button>
+        <span id="gcc-sp-spinner" class="spinner" style="float:none;vertical-align:middle;display:none;"></span>
+        <span id="gcc-sp-status" style="margin-left:10px;font-style:italic;"></span>
+    </div>
+
+    <div id="gcc-sp-results" style="display:none;margin-top:16px;background:#f6f6f6;border:1px solid #ddd;border-radius:4px;padding:12px 16px;max-height:260px;overflow-y:auto;">
+        <strong>Sync Log:</strong>
+        <ul id="gcc-sp-log" style="margin:8px 0 0;padding-left:18px;font-size:0.85rem;font-family:monospace;"></ul>
+    </div>
+
+    <script>
+    jQuery(function($){
+        $('#gcc-sp-sync-btn').on('click', function(){
+            var $btn = $(this);
+            var show = $('#ss_series_spotify_show').val();
+            if (!show) { $('#gcc-sp-status').text('Paste a show link first.'); return; }
+
+            $btn.prop('disabled', true);
+            $('#gcc-sp-spinner').show();
+            $('#gcc-sp-status').text('Asking Spotify for episodes…');
+            $('#gcc-sp-results').hide();
+            $('#gcc-sp-log').empty();
+
+            $.post(ajaxurl, {
+                action:    'ss_spotify_sync_show',
+                nonce:     '<?php echo esc_js( wp_create_nonce('ss_spotify_sync') ); ?>',
+                series_id: $btn.data('series-id'),
+                show:      show
+            }).done(function(res){
+                if (res && res.success) {
+                    $('#gcc-sp-status').html(res.data.summary);
+                    $.each(res.data.log, function(i, line){
+                        $('#gcc-sp-log').append($('<li>').html(line));
+                    });
+                    $('#gcc-sp-results').show();
+                } else {
+                    $('#gcc-sp-status').text('❌ ' + ((res && res.data) || 'Sync failed.'));
+                }
+            }).fail(function(){
+                $('#gcc-sp-status').text('❌ Request failed.');
+            }).always(function(){
+                $btn.prop('disabled', false);
+                $('#gcc-sp-spinner').hide();
+            });
+        });
+    });
+    </script>
+    <?php
 }

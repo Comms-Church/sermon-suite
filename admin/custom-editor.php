@@ -157,6 +157,7 @@ function ss_ajax_save_series() {
     update_post_meta($post_id,'_ss_series_image_lg',    esc_url_raw($_POST['image_lg']           ??''));
     update_post_meta($post_id,'_ss_series_featured',    !empty($_POST['featured']) ? '1' : '0');
     update_post_meta($post_id,'_ss_series_yt_playlist', sanitize_text_field($_POST['yt_playlist']??''));
+    update_post_meta($post_id,'_ss_series_spotify_show', sanitize_text_field($_POST['sp_show']??''));
 
     // Category
     $cat_id = absint($_POST['series_category'] ?? 0);
@@ -873,6 +874,9 @@ function ss_render_series_editor() {
     $playlist = $is_edit ? get_post_meta($post_id,'_ss_series_yt_playlist', true) : '';
     $last_sync= $is_edit ? get_post_meta($post_id,'_ss_series_yt_last_sync',true) : '';
     $api_key  = get_option('sermon_suite_yt_api_key','');
+    $sp_show      = $is_edit ? get_post_meta($post_id,'_ss_series_spotify_show', true) : '';
+    $sp_last_sync = $is_edit ? get_post_meta($post_id,'_ss_series_spotify_last_sync',true) : '';
+    $sp_creds     = Sermon_Suite_Spotify_API::has_credentials();
     $sermons  = $is_edit ? ss_get_series_sermons($post_id) : [];
     ?>
     <div class="wrap gcc-custom-editor">
@@ -946,6 +950,37 @@ function ss_render_series_editor() {
                         </p>
                         <?php endif; ?>
                         <div id="gcc-sync-log" class="gcc-sync-log"></div>
+                    </div>
+                </div>
+
+                <!-- Spotify Sync -->
+                <div class="gcc-card">
+                    <div class="gcc-card-header">&#127911; Spotify Show Sync</div>
+                    <div class="gcc-card-body">
+                        <?php if (!$sp_creds): ?>
+                        <div class="gcc-editor-notice gcc-notice-warning">
+                            No Spotify Client ID/Secret set. <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add them in Settings &rarr;</a>
+                        </div>
+                        <?php endif; ?>
+                        <p style="margin:0 0 10px;font-size:0.85rem;color:#555;line-height:1.5;">
+                            Paste a Spotify <strong>show</strong> link &mdash; new episodes become sermon drafts
+                            with the player already attached. Existing sermons and your edits are never overwritten.
+                        </p>
+                        <div class="gcc-sync-row">
+                            <input type="text" id="gcc-sp-show" class="gcc-input"
+                                   value="<?php echo esc_attr($sp_show); ?>"
+                                   placeholder="https://open.spotify.com/show/&hellip;" />
+                            <button type="button" id="gcc-sp-sync-btn2" class="gcc-sync-btn" data-series="<?php echo $post_id; ?>" <?php echo !$sp_creds?'disabled':'';?>>
+                                &#127911; Sync Now
+                            </button>
+                            <span class="spinner" id="gcc-sp-spin2" style="float:none;display:none;margin-top:4px;"></span>
+                        </div>
+                        <?php if ($sp_last_sync): ?>
+                        <p style="margin:8px 0 0;font-size:0.75rem;color:#999;">
+                            Last synced: <?php echo date_i18n(get_option('date_format').' '.get_option('time_format'),strtotime($sp_last_sync)); ?>
+                        </p>
+                        <?php endif; ?>
+                        <div id="gcc-sp-sync-log" class="gcc-sync-log"></div>
                     </div>
                 </div>
 
@@ -1169,6 +1204,25 @@ function ss_render_series_editor() {
             });
         });
 
+        // Spotify sync
+        $('#gcc-sp-sync-btn2').on('click', function(){
+            var show=$('#gcc-sp-show').val().trim();
+            if (!show) { alert('Enter a Spotify show link.'); return; }
+            $(this).prop('disabled',true);
+            $('#gcc-sp-spin2').show();
+            $('#gcc-sp-sync-log').empty().hide();
+            $.post(ajaxurl,{ action:'ss_spotify_sync_show', nonce:'<?php echo wp_create_nonce("ss_spotify_sync"); ?>', series_id:'<?php echo $post_id; ?>', show:show }, function(res){
+                $('#gcc-sp-sync-btn2').prop('disabled',false);
+                $('#gcc-sp-spin2').hide();
+                if (res.success){
+                    var html=''; res.data.log.forEach(function(l){ html+='<div>'+l+'</div>'; });
+                    $('#gcc-sp-sync-log').html(html).show();
+                    toast(res.data.summary,'success');
+                    setTimeout(function(){ location.reload(); },2000);
+                } else { toast('Sync error: '+res.data,'error'); }
+            });
+        });
+
         // Save
         $('#gcc-save-btn').on('click', function(){
             $(this).prop('disabled',true).text('Saving…');
@@ -1179,6 +1233,7 @@ function ss_render_series_editor() {
                 image_sm:$('#gcc-img-sm').val(), image_lg:$('#gcc-img-lg').val(),
                 featured:$('#gcc-featured').is(':checked')?'1':'0',
                 yt_playlist:$('#gcc-playlist').val(),
+                sp_show:$('#gcc-sp-show').val(),
                 series_category:$('#gcc-series-category').val(),
                 series_campus:$('#gcc-series-campus').val()||0
             }, function(res){
