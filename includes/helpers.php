@@ -210,6 +210,19 @@ function ss_render_rich_text( $text ) {
     $text = (string) $text;
     if ( trim($text) === '' ) return '';
 
+    // Markdown that has only been wrapped in <p>/<br> tags — what the
+    // publish endpoint stored for Sermon Shots guides in 2.4.1–3.0.0. Unwrap
+    // it and render it as the Markdown it is, so those guides repair
+    // themselves without anyone re-importing them. Real HTML guides use
+    // structural tags (headings, lists) and never take this path.
+    if ( ! preg_match('/<(div|ul|ol|li|h[1-6]|blockquote|table|strong|em|a)\b/i', $text)
+         && preg_match('/<(p|br)\b/i', $text) ) {
+        $unwrapped = Sermon_Suite_Shots_API::html_to_text( $text );
+        if ( preg_match('/^\s*(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s)/m', $unwrapped) ) {
+            return wp_kses_post( ss_markdown_to_html( $unwrapped ) );
+        }
+    }
+
     // Already HTML (older guides, or pasted from a rich editor) — leave it be.
     if ( preg_match('/<(p|div|ul|ol|li|h[1-6]|blockquote|table|br)\b[^>]*>/i', $text) ) {
         return wp_kses_post( wpautop( $text ) );

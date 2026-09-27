@@ -227,6 +227,23 @@ class Sermon_Suite_Shots_API {
         return trim( wp_kses_post( $html ) );
     }
 
+    /**
+     * Turn normalize_to_html() output back into plain text, paragraph breaks
+     * preserved — the server-side twin of the admin editor's toText().
+     *
+     * Sermon Shots content is Markdown. normalize_to_html() wraps it in <p>
+     * tags, which makes ss_render_rich_text() treat it as finished HTML and
+     * print the Markdown syntax literally. The editor strips the tags back off
+     * before saving; anything importing server-side must do the same so the
+     * two paths store identical content.
+     */
+    public static function html_to_text( $html ) {
+        $text = preg_replace( '~</p>\s*<p>~i', "</p>\n\n<p>", (string) $html );
+        $text = wp_strip_all_tags( $text );
+        $text = html_entity_decode( $text, ENT_QUOTES, 'UTF-8' );
+        return trim( preg_replace( "/\n{3,}/", "\n\n", $text ) );
+    }
+
     /** All summary variants from the last summary normalization. */
     public static $last_summary_variants = [];
 
