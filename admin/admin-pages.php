@@ -117,8 +117,8 @@ function sermon_suite_admin_dashboard() {
         </div>
 
         <div class="gcc-admin-bricks">
-            <h2>your page builder Integration</h2>
-            <p>Use these shortcodes inside a <strong>Shortcode</strong> element in your page builder. Alternatively, use the REST API endpoints below to build custom your page builder dynamic data queries.</p>
+            <h2>Page Builder Integration</h2>
+            <p>Use these shortcodes inside a <strong>Shortcode</strong> element in your page builder. Alternatively, use the REST API endpoints below to build custom dynamic-data queries in your page builder.</p>
             <p><strong>REST API base:</strong> <code><?php echo esc_html(rest_url('sermon-suite/v1/')); ?></code></p>
         </div>
     </div>

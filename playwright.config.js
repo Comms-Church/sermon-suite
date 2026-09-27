@@ -22,6 +22,18 @@ module.exports = defineConfig({
       dependencies: ['setup'],
     },
     {
+      name: 'shots-publish',
+      testMatch: /shots-publish\.spec\.js/,
+      dependencies: ['setup'],
+      use: { storageState: 'test-results/.auth/admin.json' },
+    },
+    {
+      name: 'security',
+      testMatch: /security\.spec\.js/,
+      dependencies: ['setup'],
+      use: { storageState: 'test-results/.auth/admin.json' },
+    },
+    {
       name: 'spotify-sync',
       testMatch: /spotify-sync\.spec\.js/,
       dependencies: ['setup'],

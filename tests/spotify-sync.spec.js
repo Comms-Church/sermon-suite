@@ -116,3 +116,50 @@ test('an episode link is rejected where a show link is required', async ({ page 
   expect(body.success).toBe(false);
   expect(String(body.data)).toContain('show link');
 });
+
+test('synced episodes carry their artwork, so pages never fetch it while rendering', async ({ page }) => {
+  test.setTimeout(180_000);
+  const nonce = await restNonce(page);
+  const seriesId = await makeSeries(page, nonce, `Art Series ${Date.now()}`);
+  const sNonce = await syncNonce(page, seriesId);
+  // Dedupe is by episode id across every series (one sermon per episode, as
+  // with the YouTube sync), so if an earlier test already synced the stub
+  // show this creates nothing — either way the stub episodes now exist.
+  const res = await runSync(page, sNonce, seriesId, `https://open.spotify.com/show/${SHOW}`);
+  expect((await res.json()).success).toBe(true);
+
+  // Publish the synced drafts, then view whichever series they belong to.
+  const drafts = await fetchDrafts(page, nonce);
+  for (const d of drafts.filter((x) => ['Stub Episode One', 'Stub Episode Two'].includes(x.title?.raw))) {
+    await page.request.post(`/wp-json/wp/v2/ss_sermon/${d.id}`, {
+      headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+      data: { status: 'publish' },
+    });
+  }
+  const pub = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
+  const one = pub.find((x) => x.title === 'Stub Episode One');
+  expect(one, 'synced episode did not publish').toBeTruthy();
+  await page.goto(`/?p=${one.series_id}`);
+  const html = await page.content();
+
+  // These URLs exist only in the stubbed API response — Spotify's oEmbed
+  // could never return them — so seeing them proves the stored artwork was
+  // used and nothing was fetched during the render. The 300px image is
+  // preferred when the API offers several sizes.
+  expect(html).toContain('https://i.scdn.co/image/stub-art-300-one');
+  expect(html).not.toContain('stub-art-640-one');
+  expect(html).toContain('https://i.scdn.co/image/stub-art-300-two');
+});
+
+test('the sync refuses to run against a post that is not a series', async ({ page }) => {
+  test.setTimeout(120_000);
+  const nonce = await restNonce(page);
+  const seriesId = await makeSeries(page, nonce, `Guard Series ${Date.now()}`);
+  const sNonce = await syncNonce(page, seriesId);
+  const pages = await (await page.request.get('/wp-json/wp/v2/pages?slug=sermons')).json();
+
+  const res = await runSync(page, sNonce, pages[0].id, `https://open.spotify.com/show/${SHOW}`);
+  const body = await res.json();
+  expect(body.success).toBe(false);
+  expect(String(body.data)).toContain('permission');
+});
