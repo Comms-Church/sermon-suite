@@ -111,6 +111,19 @@ test.describe('Rich text rendering (notes / guide / transcript)', () => {
     expect(await guide.innerText()).not.toContain('<strong>');
   });
 
+  test('list markers survive a theme CSS reset like Divi\'s', async ({ page, request }) => {
+    const guide = await openBlock(page, request, 'Grace That Holds', 'Discussion Guide');
+    // Divi ships exactly this reset and only restores markers inside its own
+    // content areas, which the sermon template sits outside of.
+    await page.addStyleTag({ content: 'ol,ul{list-style:none}' });
+    const styles = await guide.evaluate((el) => ({
+      ol: getComputedStyle(el.querySelector('ol')).listStyleType,
+      ul: getComputedStyle(el.querySelector('ul')).listStyleType,
+    }));
+    expect(styles.ol, 'discussion questions lost their numbers').toBe('decimal');
+    expect(styles.ul, 'bulleted lists lost their bullets').toBe('disc');
+  });
+
   test('Markdown sermon notes render as HTML', async ({ page, request }) => {
     const notes = await openBlock(page, request, 'Grace That Holds', 'Sermon Notes');
 

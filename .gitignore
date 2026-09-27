@@ -19,3 +19,7 @@ Thumbs.db
 /test-results/
 /playwright-report/
 /screenshots/
+
+# Licensed Divi theme for the opt-in compatibility suite (npm run test:divi).
+# Never committed, and never shipped (the release build skips dotfolders).
+/.divi/

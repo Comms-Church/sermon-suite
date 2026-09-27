@@ -41,6 +41,17 @@ This boots a real WordPress in Node (WordPress Playground, no Docker/PHP needed)
 - **Any failure = stop.** Report which test failed and what it saw. Do not tag.
 - A PHP fatal shows up as page text, not an HTTP error — the suite greps for `Fatal error|Parse error|Warning:|Notice:` in every page body.
 
+### 2b. Divi compatibility — run it when the front end or editors changed
+
+```bash
+npm run test:divi
+```
+
+Boots a second Playground on port 9500 with the real Divi theme and runs `tests/divi/`: shortcodes inside Divi Builder modules, the sermon/series templates inside Divi's chrome, Divi's list reset, its video wrapper, the Spotify player, and every admin screen with Divi active.
+
+- Needs Divi unzipped into `.divi/Divi` (git-ignored, never shipped). If it's missing, unzip `~/Downloads/Divi.zip` into `.divi/`; if that's gone too, tell the user a fresh download from Elegant Themes is needed and continue without it — don't block a release on a missing licensed file.
+- Same rule as the main suite: any failure = stop, don't tag.
+
 ## 3. Decide: real release, or plain commit?
 
 **Do not bump the version for changes that don't reach the shipped plugin.** Every bump makes each church site show an "update available" for a zip whose behavior is identical — noise for them, and it trains people to ignore update badges.

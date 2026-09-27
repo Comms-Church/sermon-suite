@@ -1186,7 +1186,14 @@
 /* Lists — discussion questions carry the weight here, so give them room
    and an accent-colored marker. */
 .ss-notes-body ul,
-.ss-notes-body ol { padding-left: 26px; margin: 10px 0 14px; }
+.ss-notes-body ol { padding: 0 0 0 26px; margin: 10px 0 14px; }
+/* State the markers outright rather than relying on the browser default.
+   Themes with a CSS reset — Divi ships `ol,ul{list-style:none}` and only
+   restores markers inside its own content areas — otherwise strip the
+   numbers off discussion questions and the bullets off every list here. */
+.ss-notes-body ul { list-style: disc outside; }
+.ss-notes-body ol { list-style: decimal outside; }
+.ss-notes-body li > ul { list-style-type: circle; }
 .ss-notes-body li { margin: 0 0 9px; padding-left: 4px; }
 .ss-notes-body li:last-child { margin-bottom: 0; }
 .ss-notes-body li::marker { color: var(--gcc-accent); font-weight: 700; }
