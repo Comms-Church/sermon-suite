@@ -12,6 +12,12 @@ function ss_yt_handle_sync() {
     $api_key   = get_option('sermon_suite_yt_api_key', '');
 
     if ( ! $series_id ) wp_send_json_error('Missing series ID');
+
+    // Only sync into a real series this user may edit — otherwise any
+    // Contributor could write onto, and attach sermons to, an arbitrary post.
+    if ( get_post_type( $series_id ) !== 'ss_series' || ! current_user_can( 'edit_post', $series_id ) ) {
+        wp_send_json_error( 'You do not have permission to sync into that series.' );
+    }
     if ( ! $playlist )  wp_send_json_error('Missing playlist');
     if ( ! $api_key )   wp_send_json_error('No YouTube API key configured. Add one under Sermons → Settings.');
 
@@ -34,6 +40,7 @@ function ss_yt_handle_sync() {
     foreach ( $videos as $video ) {
         $video_id = $video['id'];
         $title    = $video['title'];
+        $title_html = esc_html( $title ); // log lines are inserted into the admin page as HTML
         $desc     = $video['description'];
         $pub_date = substr($video['publishedAt'], 0, 10); // YYYY-MM-DD
 
@@ -49,7 +56,7 @@ function ss_yt_handle_sync() {
         ]);
 
         if ( ! empty($existing) ) {
-            $log[] = "↩ Already synced: {$title}";
+            $log[] = "↩ Already synced: {$title_html}";
             $skipped++;
             continue;
         }
@@ -64,7 +71,7 @@ function ss_yt_handle_sync() {
         ]);
 
         if ( is_wp_error($post_id) ) {
-            $log[]  = "❌ Error creating: {$title} — " . $post_id->get_error_message();
+            $log[]  = "❌ Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
             $errors++;
             continue;
         }
@@ -81,7 +88,7 @@ function ss_yt_handle_sync() {
             wp_set_post_terms($post_id, [$default_speaker], 'ss_speaker');
         }
 
-        $log[]  = "✅ Created draft: <a href=\"" . get_edit_post_link($post_id) . "\" target=\"_blank\">{$title}</a> ({$pub_date})";
+        $log[]  = "✅ Created draft: <a href=\"" . get_edit_post_link($post_id) . "\" target=\"_blank\">{$title_html}</a> (" . esc_html( $pub_date ) . ")";
         $created++;
     }
 

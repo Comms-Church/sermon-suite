@@ -99,20 +99,21 @@ class Sermon_Suite_Updater {
         // Strip a leading "v" from tags like "v1.3.0".
         $version = ltrim( $release->tag_name, 'vV' );
 
-        // Prefer an attached .zip asset; fall back to the auto-generated
-        // source zip if no asset was uploaded.
+        // Only ever install the built sermon-suite.zip the release Action
+        // attaches. GitHub's auto-generated source zip is deliberately NOT a
+        // fallback: it unpacks to a folder named after the repo and commit
+        // (so it installs as a second, broken copy of the plugin) and it
+        // contains the test suite and dev tooling. A release without the
+        // built asset simply isn't offered as an update.
         $package = '';
         if ( ! empty( $release->assets ) && is_array( $release->assets ) ) {
             foreach ( $release->assets as $asset ) {
                 if ( ! empty( $asset->browser_download_url )
-                    && substr( $asset->name, -4 ) === '.zip' ) {
+                    && isset( $asset->name ) && $asset->name === 'sermon-suite.zip' ) {
                     $package = $asset->browser_download_url;
                     break;
                 }
             }
-        }
-        if ( ! $package && ! empty( $release->zipball_url ) ) {
-            $package = $release->zipball_url;
         }
 
         $data = new stdClass();

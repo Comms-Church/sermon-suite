@@ -70,6 +70,39 @@ function ss_filter_edit_post_link( $link, $post_id ) {
     return $link;
 }
 
+// ── Authorisation for the custom editors ─────────────────────────────────────
+/**
+ * Decide what the current user may do with a save request, before anything is
+ * written. The general edit_posts check alone is not enough: without these,
+ * any Contributor could pass the id of an arbitrary page or post, have it
+ * converted into a sermon, and publish it.
+ *
+ * Returns the (possibly downgraded) post status to save with. Sends a JSON
+ * error and exits if the request is not allowed.
+ */
+function ss_editor_authorize_save( $post_id, $post_type, $requested_status ) {
+    if ( $post_id ) {
+        $existing = get_post( $post_id );
+        // Only ever edit a post that already is this type — never convert one.
+        if ( ! $existing || $existing->post_type !== $post_type ) {
+            wp_send_json_error( 'That item cannot be edited here.' );
+        }
+        // Per-post check: respects ownership and published-post rules.
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            wp_send_json_error( 'You do not have permission to edit this item.' );
+        }
+    }
+
+    $allowed = [ 'publish', 'draft', 'pending', 'private' ];
+    $status  = in_array( $requested_status, $allowed, true ) ? $requested_status : 'draft';
+
+    // Someone without publishing rights submits for review instead.
+    if ( in_array( $status, [ 'publish', 'private' ], true ) && ! current_user_can( 'publish_posts' ) ) {
+        $status = 'pending';
+    }
+    return $status;
+}
+
 // ── AJAX: save sermon ─────────────────────────────────────────────────────────
 add_action( 'wp_ajax_ss_save_sermon', 'ss_ajax_save_sermon' );
 function ss_ajax_save_sermon() {
@@ -79,12 +112,13 @@ function ss_ajax_save_sermon() {
     $post_id = absint($_POST['post_id'] ?? 0);
     $title   = sanitize_text_field($_POST['title']         ?? '');
     if (!$title) wp_send_json_error('Title is required.');
+    $status  = ss_editor_authorize_save( $post_id, 'ss_sermon', sanitize_key($_POST['status'] ?? 'publish') );
 
     $post_data = [
         'post_type'    => 'ss_sermon',
         'post_title'   => $title,
         'post_content' => wp_kses_post($_POST['content']   ?? ''),
-        'post_status'  => sanitize_key($_POST['status']    ?? 'publish'),
+        'post_status'  => $status,
         'post_date'    => ($_POST['sermon_date'] ?? '') ? sanitize_text_field($_POST['sermon_date']).' 00:00:00' : current_time('mysql'),
     ];
     $result = $post_id ? wp_update_post(array_merge($post_data,['ID'=>$post_id]),true) : wp_insert_post($post_data,true);
@@ -110,7 +144,9 @@ function ss_ajax_save_sermon() {
     $resources = [];
     foreach (($_POST['res_label']??[]) as $i => $label) {
         $url = esc_url_raw($_POST['res_url'][$i] ?? '');
-        if ($url) $resources[] = ['label'=>sanitize_text_field($label),'url'=>$url,'type'=>sanitize_key($_POST['res_type'][$i]??'link')];
+        $type = sanitize_key($_POST['res_type'][$i] ?? 'link');
+        if ( ! in_array($type, ['pdf','devotional','notes','link'], true) ) $type = 'link';
+        if ($url) $resources[] = ['label'=>sanitize_text_field($label),'url'=>$url,'type'=>$type];
     }
     update_post_meta($post_id,'_ss_resources',$resources);
 
@@ -145,8 +181,9 @@ function ss_ajax_save_series() {
     $post_id = absint($_POST['post_id'] ?? 0);
     $title   = sanitize_text_field($_POST['title'] ?? '');
     if (!$title) wp_send_json_error('Title is required.');
+    $status  = ss_editor_authorize_save( $post_id, 'ss_series', sanitize_key($_POST['status'] ?? 'publish') );
 
-    $post_data = ['post_type'=>'ss_series','post_title'=>$title,'post_content'=>wp_kses_post($_POST['content']??''),'post_status'=>sanitize_key($_POST['status']??'publish')];
+    $post_data = ['post_type'=>'ss_series','post_title'=>$title,'post_content'=>wp_kses_post($_POST['content']??''),'post_status'=>$status];
     $result = $post_id ? wp_update_post(array_merge($post_data,['ID'=>$post_id]),true) : wp_insert_post($post_data,true);
     if (is_wp_error($result)) wp_send_json_error($result->get_error_message());
     $post_id = $result;

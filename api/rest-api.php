@@ -3,6 +3,14 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action( 'rest_api_init', 'sermon_suite_register_rest_routes' );
 
+/**
+ * These routes are public, so page size is capped the way WordPress caps its
+ * own endpoints — otherwise one anonymous request could load every sermon.
+ */
+function ss_rest_clamp_per_page( $value ) {
+    return max( 1, min( 100, absint( $value ) ) );
+}
+
 function sermon_suite_register_rest_routes() {
     $ns = 'sermon-suite/v1';
 
@@ -12,7 +20,7 @@ function sermon_suite_register_rest_routes() {
         'callback'            => 'ss_rest_get_series',
         'permission_callback' => '__return_true',
         'args' => [
-            'per_page' => [ 'default' => 20,  'sanitize_callback' => 'absint' ],
+            'per_page' => [ 'default' => 20,  'sanitize_callback' => 'ss_rest_clamp_per_page' ],
             'page'     => [ 'default' => 1,   'sanitize_callback' => 'absint' ],
             'topic'    => [ 'default' => '',   'sanitize_callback' => 'sanitize_text_field' ],
             'featured' => [ 'default' => '',   'sanitize_callback' => 'sanitize_text_field' ],
@@ -34,7 +42,7 @@ function sermon_suite_register_rest_routes() {
         'callback'            => 'ss_rest_get_sermons',
         'permission_callback' => '__return_true',
         'args' => [
-            'per_page'  => [ 'default' => 20,  'sanitize_callback' => 'absint' ],
+            'per_page'  => [ 'default' => 20,  'sanitize_callback' => 'ss_rest_clamp_per_page' ],
             'page'      => [ 'default' => 1,   'sanitize_callback' => 'absint' ],
             'series_id' => [ 'default' => 0,   'sanitize_callback' => 'absint' ],
             'topic'     => [ 'default' => '',   'sanitize_callback' => 'sanitize_text_field' ],
