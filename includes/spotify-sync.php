@@ -134,7 +134,7 @@ class Sermon_Suite_Spotify_API {
         if ( $cached !== false ) return $cached === 'none' ? '' : $cached;
 
         $url  = 'https://open.spotify.com/oembed?url=' . rawurlencode( ss_spotify_public_url( $ref ) );
-        $resp = wp_remote_get( $url, [ 'timeout' => 8 ] );
+        $resp = wp_remote_get( $url, [ 'timeout' => 3 ] );
 
         $thumb = '';
         if ( ! is_wp_error( $resp ) && wp_remote_retrieve_response_code( $resp ) === 200 ) {
@@ -150,13 +150,54 @@ class Sermon_Suite_Spotify_API {
 }
 
 /**
+ * Pick a card-sized image from a Web API images[] list (usually 640/300/64).
+ */
+function ss_spotify_pick_image( $images ) {
+    if ( ! is_array( $images ) || ! $images ) return '';
+    foreach ( $images as $img ) {
+        if ( (int) ( $img['width'] ?? 0 ) === 300 && ! empty( $img['url'] ) ) return $img['url'];
+    }
+    return $images[0]['url'] ?? '';
+}
+
+/**
  * Artwork for a sermon's Spotify episode, or '' if it has none.
  * Mirrors ss_youtube_thumb() so callers can fall back the same way.
+ *
+ * This runs while a page renders, once per card, so it must never be slow:
+ *   1. Artwork stored on the post (saved by the show sync, or by an earlier
+ *      lookup) is used directly — no network at all.
+ *   2. Otherwise a cached oEmbed lookup, capped at a few cold fetches per
+ *      page load. A series of fifty synced-before-3.0.1 episodes then fills in
+ *      its artwork over a handful of views instead of making one visitor wait
+ *      for fifty sequential requests (or time out if Spotify is down).
+ * Anything beyond the cap falls back to the series image for that view.
  */
 function ss_spotify_thumb( $sermon_id ) {
     $ref = ss_get_spotify_ref( get_post_meta( $sermon_id, '_ss_spotify_url', true ) );
     if ( ! $ref ) return '';
-    return Sermon_Suite_Spotify_API::get_thumbnail( $ref );
+
+    // Stored artwork, valid only for the episode it was fetched for — if the
+    // link is changed to a different episode, it is looked up afresh.
+    $stored = get_post_meta( $sermon_id, '_ss_spotify_image', true );
+    if ( $stored && get_post_meta( $sermon_id, '_ss_spotify_image_src', true ) === $ref['id'] ) {
+        return $stored;
+    }
+
+    static $cold_fetches = 0;
+    $budget = (int) apply_filters( 'ss_spotify_thumb_fetch_budget', 3 );
+    $key    = 'ss_sp_thumb_' . substr( md5( $ref['type'] . $ref['id'] ), 0, 20 );
+    if ( get_transient( $key ) === false ) {
+        if ( $cold_fetches >= $budget ) return '';
+        $cold_fetches++;
+    }
+
+    $thumb = Sermon_Suite_Spotify_API::get_thumbnail( $ref );
+    if ( $thumb ) {
+        update_post_meta( $sermon_id, '_ss_spotify_image',     $thumb );
+        update_post_meta( $sermon_id, '_ss_spotify_image_src', $ref['id'] );
+    }
+    return $thumb;
 }
 
 // ── Show sync (AJAX) ──────────────────────────────────────────────────────────
@@ -170,6 +211,12 @@ function ss_spotify_handle_sync() {
     $show      = sanitize_text_field( $_POST['show'] ?? '' );
 
     if ( ! $series_id ) wp_send_json_error( 'Missing series ID' );
+
+    // Only sync into a real series this user may edit — otherwise any
+    // Contributor could write onto, and attach sermons to, an arbitrary post.
+    if ( get_post_type( $series_id ) !== 'ss_series' || ! current_user_can( 'edit_post', $series_id ) ) {
+        wp_send_json_error( 'You do not have permission to sync into that series.' );
+    }
     if ( ! $show )      wp_send_json_error( 'Missing show link' );
 
     $ref = ss_get_spotify_ref( $show );
@@ -192,6 +239,7 @@ function ss_spotify_handle_sync() {
         $ep_id = $ep['id'] ?? '';
         if ( ! $ep_id ) continue;
         $title    = wp_strip_all_tags( $ep['name'] ?? '' );
+        $title_html = esc_html( $title );
         $desc     = $ep['description'] ?? '';
         $pub_date = substr( (string) ( $ep['release_date'] ?? '' ), 0, 10 );
         if ( ! $title ) continue;
@@ -206,7 +254,7 @@ function ss_spotify_handle_sync() {
             'meta_query'     => [[ 'key' => '_ss_spotify_synced', 'value' => $ep_id ]],
         ]);
         if ( ! empty( $existing ) ) {
-            $log[] = "↩ Already synced: {$title}";
+            $log[] = "↩ Already synced: {$title_html}";
             $skipped++;
             continue;
         }
@@ -219,12 +267,19 @@ function ss_spotify_handle_sync() {
             'post_date'    => $pub_date ? $pub_date . ' 00:00:00' : current_time( 'mysql' ),
         ]);
         if ( is_wp_error( $post_id ) ) {
-            $log[] = "❌ Error creating: {$title} — " . $post_id->get_error_message();
+            $log[] = "❌ Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
             $errors++;
             continue;
         }
 
         update_post_meta( $post_id, '_ss_spotify_synced', $ep_id );
+        // The API response already carries the artwork; storing it means
+        // synced sermons never need a lookup while a page renders.
+        $image = ss_spotify_pick_image( $ep['images'] ?? [] );
+        if ( $image ) {
+            update_post_meta( $post_id, '_ss_spotify_image',     esc_url_raw( $image ) );
+            update_post_meta( $post_id, '_ss_spotify_image_src', $ep_id );
+        }
         update_post_meta( $post_id, '_ss_spotify_url',    'https://open.spotify.com/episode/' . $ep_id );
         update_post_meta( $post_id, '_ss_series_id',      $series_id );
         if ( $pub_date ) update_post_meta( $post_id, '_ss_sermon_date', $pub_date );
@@ -232,7 +287,7 @@ function ss_spotify_handle_sync() {
         $default_speaker = get_post_meta( $series_id, '_ss_series_default_speaker', true );
         if ( $default_speaker ) wp_set_post_terms( $post_id, [ $default_speaker ], 'ss_speaker' );
 
-        $log[] = "✅ Created draft: <a href=\"" . get_edit_post_link( $post_id ) . "\" target=\"_blank\">{$title}</a>" . ( $pub_date ? " ({$pub_date})" : '' );
+        $log[] = "✅ Created draft: <a href=\"" . get_edit_post_link( $post_id ) . "\" target=\"_blank\">{$title_html}</a>" . ( $pub_date ? ' (' . esc_html( $pub_date ) . ')' : '' );
         $created++;
     }
 
