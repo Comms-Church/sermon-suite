@@ -39,6 +39,7 @@ if ( is_admin() ) {
 require_once SERMON_SUITE_DIR . 'admin/admin-pages.php';
 require_once SERMON_SUITE_DIR . 'admin/custom-editor.php';
 require_once SERMON_SUITE_DIR . 'admin/importer.php';
+require_once SERMON_SUITE_DIR . 'admin/sermon-list.php';
 require_once SERMON_SUITE_DIR . 'admin/shortcode-generator.php';
 require_once SERMON_SUITE_DIR . 'blocks/blocks.php';
 
@@ -54,6 +55,7 @@ function sermon_suite_activate() {
 }
 
 function sermon_suite_deactivate() {
+    wp_clear_scheduled_hook( 'ss_spotify_daily_sync' );
     flush_rewrite_rules();
 }
 

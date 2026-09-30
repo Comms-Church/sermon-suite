@@ -136,6 +136,9 @@ function sermon_suite_settings_page() {
         update_option('sermon_suite_spotify_client_secret', $new_sp_secret);
         // Credentials changed — drop any cached access token.
         delete_transient('ss_spotify_token');
+        update_option('sermon_suite_spotify_show', sanitize_text_field(wp_unslash($_POST['spotify_show'] ?? '')));
+        update_option('sermon_suite_spotify_auto_sync', !empty($_POST['spotify_auto_sync']) ? '1' : '0');
+        ss_spotify_update_schedule();
         update_option('sermon_suite_page_id',         absint($_POST['sermons_page_id'] ?? 0));
         $allowed_sizes = [ 'small', 'medium', 'large', 'xlarge' ];
         $size_in = sanitize_key($_POST['text_size'] ?? 'medium');
@@ -172,6 +175,10 @@ function sermon_suite_settings_page() {
     $shots_api_key   = get_option('sermon_suite_shots_api_key', '');
     $sp_client_id    = get_option('sermon_suite_spotify_client_id', '');
     $sp_secret       = get_option('sermon_suite_spotify_client_secret', '');
+    $sp_show         = get_option('sermon_suite_spotify_show', '');
+    $sp_auto         = get_option('sermon_suite_spotify_auto_sync') === '1';
+    $sp_last         = get_option('sermon_suite_spotify_last_sync', '');
+    $sp_next         = wp_next_scheduled('ss_spotify_daily_sync');
     $all_pages       = get_posts(['post_type'=>'page','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'publish']);
     $versions = ['NIV','ESV','KJV','NLT','NASB','MSG','CSB'];
 
@@ -345,8 +352,7 @@ function sermon_suite_settings_page() {
                                value="<?php echo esc_attr($sp_client_id); ?>"
                                class="regular-text" autocomplete="off" />
                         <p class="description">
-                            Needed only for <strong>Spotify show sync</strong> (bulk-importing a podcast's episodes
-                            as sermons). Create a free app at
+                            Needed only to <strong>import your podcast</strong> (below). Create a free app at
                             <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>
                             and copy its Client ID and Secret here. No redirect URI is required.
                             Adding a Spotify player to an individual sermon does <em>not</em> need this.
@@ -360,6 +366,77 @@ function sermon_suite_settings_page() {
                                value="<?php echo esc_attr($sp_secret); ?>"
                                class="regular-text" autocomplete="off" />
                         <p class="description">Stored server-side and never exposed to visitors.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Spotify Podcast</th>
+                    <td>
+                        <input type="text" name="spotify_show" id="ss-spotify-show"
+                               value="<?php echo esc_attr($sp_show); ?>"
+                               class="large-text" placeholder="https://open.spotify.com/show/…" />
+                        <p class="description">
+                            Your church's show link. <strong>Sync Now</strong> imports every episode as a draft sermon,
+                            with its Spotify player and artwork attached and no series yet &mdash; then sort them into
+                            series from <a href="<?php echo esc_url(admin_url('edit.php?post_type=ss_sermon&ss_series_filter=none')); ?>">All Sermons</a>
+                            (tick sermons &rarr; Bulk actions &rarr; Edit &rarr; Series). Syncing again only adds new
+                            episodes and never changes a sermon you've edited.
+                        </p>
+                        <p style="margin-top:10px;">
+                            <button type="button" class="button button-secondary" id="ss-spotify-sync"
+                                    <?php disabled( ! Sermon_Suite_Spotify_API::has_credentials() ); ?>>Sync Now</button>
+                            <span class="spinner" id="ss-spotify-spin" style="float:none;margin-top:0;"></span>
+                            <span id="ss-spotify-status" style="margin-left:6px;"></span>
+                        </p>
+                        <?php if ( ! Sermon_Suite_Spotify_API::has_credentials() ) : ?>
+                            <p class="description">Add your Spotify Client ID and Secret above and save, to enable syncing.</p>
+                        <?php endif; ?>
+                        <div id="ss-spotify-log" style="display:none;margin-top:10px;max-height:220px;overflow:auto;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:10px 12px;font-size:12px;font-family:monospace;"></div>
+                        <p style="margin-top:12px;">
+                            <label>
+                                <input type="checkbox" name="spotify_auto_sync" value="1" <?php checked($sp_auto); ?> />
+                                Check for new episodes every day
+                            </label>
+                        </p>
+                        <p class="description" id="ss-spotify-schedule">
+                            <?php if ( $sp_last ) : ?>
+                                Last synced <?php echo esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime($sp_last) ) ); ?>.
+                            <?php endif; ?>
+                            <?php if ( $sp_next ) : ?>
+                                Next automatic check: <?php echo esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), $sp_next + (int) ( get_option('gmt_offset') * HOUR_IN_SECONDS ) ) ); ?>.
+                            <?php endif; ?>
+                            New episodes arrive as drafts, ready to put in a series and publish.
+                        </p>
+                        <script>
+                        jQuery(function($){
+                            $('#ss-spotify-sync').on('click', function(){
+                                var show = $('#ss-spotify-show').val().trim();
+                                if (!show) { $('#ss-spotify-status').text('Paste your show link first.'); return; }
+                                var $btn = $(this).prop('disabled', true);
+                                $('#ss-spotify-spin').addClass('is-active');
+                                $('#ss-spotify-status').text('Asking Spotify for episodes…');
+                                $('#ss-spotify-log').hide().empty();
+                                $.post(ajaxurl, {
+                                    action: 'ss_spotify_sync_feed',
+                                    nonce:  '<?php echo esc_js( wp_create_nonce('ss_spotify_sync') ); ?>',
+                                    show:   show
+                                }).done(function(res){
+                                    if (res && res.success) {
+                                        $('#ss-spotify-status').html(res.data.summary);
+                                        if (res.data.log.length) {
+                                            $('#ss-spotify-log').html(res.data.log.map(function(l){ return '<div>'+l+'</div>'; }).join('')).show();
+                                        }
+                                    } else {
+                                        $('#ss-spotify-status').text('❌ ' + ((res && res.data) || 'Sync failed.'));
+                                    }
+                                }).fail(function(){
+                                    $('#ss-spotify-status').text('❌ Request failed.');
+                                }).always(function(){
+                                    $btn.prop('disabled', false);
+                                    $('#ss-spotify-spin').removeClass('is-active');
+                                });
+                            });
+                        });
+                        </script>
                     </td>
                 </tr>
                 <tr>

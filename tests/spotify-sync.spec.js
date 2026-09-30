@@ -1,165 +1,157 @@
-// Spotify show sync — the audio counterpart to the YouTube playlist sync.
+// Spotify podcast sync — one site-wide feed of every sermon, sorted into
+// series afterwards from the All Sermons list.
+//
 // The real Spotify API is never called: a test-only mu-plugin (installed by
-// the blueprint) answers the ss_spotify_episodes filter with fixed episodes,
-// so this exercises the sync's own logic — creation, dedupe, meta, ordering.
+// the blueprint) answers the ss_spotify_episodes filter with two fixed
+// episodes, so this exercises the plugin's own logic end to end.
 const { test, expect } = require('@playwright/test');
 
 const SHOW = 'TESTSHOW00000000000000';
-const EPISODES = ['TESTEPISODE00000000001', 'TESTEPISODE00000000002'];
+const TITLES = ['Stub Episode One', 'Stub Episode Two'];
 
-async function restNonce(page) {
-  await page.goto('/wp-admin/admin.php?page=sermon-suite-import');
-  const n = await page.evaluate(() => window.sermonSuiteAdmin?.restNonce);
-  expect(n).toBeTruthy();
-  return n;
-}
-
-// Creates a series by publishing a throwaway sermon into it, then returns its id.
-async function makeSeries(page, nonce, name) {
-  const res = await page.request.post('/wp-json/sermon-suite/v1/sermons/publish', {
-    headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
-    data: { sermon_title: `${name} seed`, series_name: name, date: '2019-01-01' },
-  });
-  expect(res.status()).toBe(200);
-  const { post_id } = await res.json();
-  const all = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
-  const seed = all.find((s) => s.id === post_id);
-  expect(seed.series_id).toBeGreaterThan(0);
-  return seed.series_id;
-}
-
-// The sync runs over admin-ajax with its own nonce, printed into the Spotify
-// card on the plugin's custom series editor — which is the screen the plugin
-// redirects series edit links to, and the one users actually see.
-async function syncNonce(page, seriesId) {
-  await page.goto(`/wp-admin/admin.php?page=ss-edit-series&post_id=${seriesId}`);
-  const html = await page.content();
-  const m = html.match(/action:'ss_spotify_sync_show',\s*nonce:'([a-f0-9]+)'/);
-  expect(m, 'Spotify sync card not found on the series editor').toBeTruthy();
+async function settingsNonce(page) {
+  await page.goto('/wp-admin/admin.php?page=sermon-suite-settings');
+  const m = (await page.content()).match(/action:\s*'ss_spotify_sync_feed',\s*nonce:\s*'([a-f0-9]+)'/);
+  expect(m, 'Spotify podcast sync controls missing from Settings').toBeTruthy();
   return m[1];
 }
 
-async function fetchDrafts(page, nonce) {
-  const res = await page.request.get(
-    '/wp-json/wp/v2/ss_sermon?status=draft&per_page=100&context=edit',
-    { headers: { 'X-WP-Nonce': nonce } }
-  );
-  expect(res.status(), 'draft lookup failed — cookie auth needs the wp_rest nonce').toBe(200);
-  return res.json();
+const syncFeed = (page, nonce, show) =>
+  page.request.post('/wp-admin/admin-ajax.php', { form: { action: 'ss_spotify_sync_feed', nonce, show } });
+
+async function restNonce(page) {
+  await page.goto('/wp-admin/admin.php?page=sermon-suite-import');
+  return page.evaluate(() => window.sermonSuiteAdmin?.restNonce);
 }
 
-// Core's /wp/v2 response carries no `meta` for this post type (ss_sermon does
-// not declare custom-fields support), so the synced values are verified where
-// a user would actually see them: the plugin's own sermon editor.
-async function editorHtml(page, postId) {
-  await page.goto(`/wp-admin/admin.php?page=ss-edit-sermon&post_id=${postId}`);
-  return page.content();
+// Titles visible in the All Sermons list for a given series filter.
+async function listTitles(page, filter) {
+  await page.goto(`/wp-admin/edit.php?post_type=ss_sermon&post_status=all&ss_series_filter=${filter}`);
+  return page.locator('#the-list .row-title').allInnerTexts();
 }
 
-const runSync = (page, nonce, seriesId, show) =>
-  page.request.post('/wp-admin/admin-ajax.php', {
-    form: { action: 'ss_spotify_sync_show', nonce, series_id: String(seriesId), show },
-  });
-
-test('syncing a show creates a draft sermon per episode, then dedupes on re-run', async ({ page }) => {
+test('Sync Now imports every episode as a draft with no series, then dedupes', async ({ page }) => {
   test.setTimeout(180_000);
-  const nonce = await restNonce(page);
-  const seriesId = await makeSeries(page, nonce, `Sync Series ${Date.now()}`);
-  const sNonce = await syncNonce(page, seriesId);
+  const nonce = await settingsNonce(page);
 
-  // ── first run: both episodes land ────────────────────────────────────────
-  const first = await runSync(page, sNonce, seriesId, `https://open.spotify.com/show/${SHOW}`);
-  expect(first.status()).toBe(200);
-  const firstBody = await first.json();
-  expect(firstBody.success, JSON.stringify(firstBody)).toBe(true);
-  expect(firstBody.data.created).toBe(2);
-  expect(firstBody.data.errors).toBe(0);
+  const first = await (await syncFeed(page, nonce, `https://open.spotify.com/show/${SHOW}`)).json();
+  expect(first.success, JSON.stringify(first)).toBe(true);
+  expect(first.data.created).toBe(2);
+  expect(first.data.errors).toBe(0);
 
-  // They're drafts, so check through core's REST with admin cookies.
-  const drafts = await fetchDrafts(page, nonce);
-  const made = drafts.filter((d) => ['Stub Episode One', 'Stub Episode Two'].includes(d.title?.raw));
-  expect(made.length, 'both episodes should exist as drafts').toBe(2);
+  // They land unassigned — the "No series" filter is where you find them.
+  const unassigned = await listTitles(page, 'none');
+  for (const t of TITLES) expect(unassigned, `${t} should be unassigned`).toContain(t);
 
-  // Each draft opens in the editor with its Spotify link and date already
-  // filled in, and attached to the series we synced into.
-  for (const d of made) {
-    const html = await editorHtml(page, d.id);
-    const epIndex = d.title.raw === 'Stub Episode One' ? 0 : 1;
-    expect(html, `${d.title.raw} has no Spotify link`)
-      .toContain(`https://open.spotify.com/episode/${EPISODES[epIndex]}`);
-    expect(html).toContain(epIndex === 0 ? '2019-05-01' : '2019-05-08');
-    expect(html).toContain(`value="${seriesId}" selected`);
-  }
+  // Sync Now saved the show link to Settings.
+  await page.goto('/wp-admin/admin.php?page=sermon-suite-settings');
+  await expect(page.locator('#ss-spotify-show')).toHaveValue(`https://open.spotify.com/show/${SHOW}`);
 
-  // ── second run: nothing new, nothing duplicated ──────────────────────────
-  const second = await runSync(page, sNonce, seriesId, `https://open.spotify.com/show/${SHOW}`);
-  const secondBody = await second.json();
-  expect(secondBody.data.created, 're-sync should create nothing').toBe(0);
-  expect(secondBody.data.skipped).toBe(2);
-
-  const after = await fetchDrafts(page, nonce);
-  expect(after.filter((d) => ['Stub Episode One', 'Stub Episode Two'].includes(d.title?.raw)).length,
-    're-sync duplicated sermons').toBe(2);
+  // Re-running adds nothing and duplicates nothing.
+  const again = await (await syncFeed(page, nonce, `https://open.spotify.com/show/${SHOW}`)).json();
+  expect(again.data.created).toBe(0);
+  expect(again.data.skipped).toBe(2);
+  const all = await listTitles(page, 'none');
+  for (const t of TITLES) expect(all.filter((x) => x === t).length, `${t} duplicated`).toBe(1);
 });
 
-test('an episode link is rejected where a show link is required', async ({ page }) => {
-  test.setTimeout(120_000);
+test('Bulk Edit files sermons into a series, numbers them by date, and can publish them', async ({ page }) => {
+  test.setTimeout(180_000);
+  // A series to sort into (created by publishing a throwaway sermon into it).
   const nonce = await restNonce(page);
-  const seriesId = await makeSeries(page, nonce, `Sync Reject ${Date.now()}`);
-  const sNonce = await syncNonce(page, seriesId);
+  const seriesName = `Bulk Series ${Date.now()}`;
+  const seed = await (await page.request.post('/wp-json/sermon-suite/v1/sermons/publish', {
+    headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+    data: { sermon_title: `${seriesName} seed`, series_name: seriesName, date: '2019-01-01' },
+  })).json();
+  const all = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
+  const seriesId = all.find((s) => s.id === seed.post_id).series_id;
 
-  const res = await runSync(
-    page, sNonce, seriesId,
-    'https://open.spotify.com/episode/098gM1uPWKADc7BfRwMxTO'
-  );
-  const body = await res.json();
+  // Make sure the stub episodes exist (the previous test imports them).
+  await syncFeed(page, await settingsNonce(page), `https://open.spotify.com/show/${SHOW}`);
+
+  // All Sermons → No series → tick both → Bulk actions: Edit.
+  await page.goto('/wp-admin/edit.php?post_type=ss_sermon&post_status=all&ss_series_filter=none');
+  for (const t of TITLES) {
+    await page.locator('#the-list tr', { has: page.locator('.row-title', { hasText: t }) })
+      .locator('input[type=checkbox]').check();
+  }
+  await page.locator('#bulk-action-selector-top').selectOption('edit');
+  await page.locator('#doaction').click();
+
+  // The Series field sits in the Bulk Edit panel, alongside core's Status.
+  const panel = page.locator('#bulk-edit');
+  await expect(panel.locator('select[name="ss_bulk_series"]')).toBeVisible();
+  await panel.locator('select[name="ss_bulk_series"]').selectOption(String(seriesId));
+  await panel.locator('select[name="_status"]').selectOption('publish');
+  await panel.locator('#bulk_edit').click();
+  await page.waitForLoadState('networkidle');
+
+  // Now listed under the series and gone from "No series".
+  const inSeries = await listTitles(page, String(seriesId));
+  for (const t of TITLES) expect(inSeries).toContain(t);
+  const stillLoose = await listTitles(page, 'none');
+  for (const t of TITLES) expect(stillLoose).not.toContain(t);
+
+  // Published, attached, and numbered after the seed sermon in date order.
+  const pub = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
+  const one = pub.find((s) => s.title === 'Stub Episode One');
+  const two = pub.find((s) => s.title === 'Stub Episode Two');
+  expect(one?.series_id).toBe(seriesId);
+  expect(two?.series_id).toBe(seriesId);
+  expect(one.series_order).toBeLessThan(two.series_order);
+
+  // The series page shows them with the artwork stored at import — URLs that
+  // exist only in the stubbed API response, so nothing was fetched to render.
+  await page.goto(`/?p=${seriesId}`);
+  const html = await page.content();
+  expect(html).toContain('https://i.scdn.co/image/stub-art-300-one');
+  expect(html).not.toContain('stub-art-640-one');
+});
+
+test('"Remove from series" in Bulk Edit puts a sermon back under No series', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto('/wp-admin/edit.php?post_type=ss_sermon&post_status=all');
+  const row = page.locator('#the-list tr', { has: page.locator('.row-title', { hasText: 'Stub Episode Two' }) });
+  await row.locator('input[type=checkbox]').check();
+  await page.locator('#bulk-action-selector-top').selectOption('edit');
+  await page.locator('#doaction').click();
+  await page.locator('#bulk-edit select[name="ss_bulk_series"]').selectOption('none');
+  await page.locator('#bulk-edit #bulk_edit').click();
+  await page.waitForLoadState('networkidle');
+
+  expect(await listTitles(page, 'none')).toContain('Stub Episode Two');
+});
+
+test('a single episode link is refused where the show is required', async ({ page }) => {
+  const nonce = await settingsNonce(page);
+  const body = await (await syncFeed(page, nonce, 'https://open.spotify.com/episode/098gM1uPWKADc7BfRwMxTO')).json();
   expect(body.success).toBe(false);
   expect(String(body.data)).toContain('show link');
 });
 
-test('synced episodes carry their artwork, so pages never fetch it while rendering', async ({ page }) => {
-  test.setTimeout(180_000);
-  const nonce = await restNonce(page);
-  const seriesId = await makeSeries(page, nonce, `Art Series ${Date.now()}`);
-  const sNonce = await syncNonce(page, seriesId);
-  // Dedupe is by episode id across every series (one sermon per episode, as
-  // with the YouTube sync), so if an earlier test already synced the stub
-  // show this creates nothing — either way the stub episodes now exist.
-  const res = await runSync(page, sNonce, seriesId, `https://open.spotify.com/show/${SHOW}`);
-  expect((await res.json()).success).toBe(true);
+test('the daily check can be switched on and off from Settings', async ({ page }) => {
+  // Each step runs in a fresh tab. In the headless test browser, a tab stops
+  // rendering frames after any form POST — WordPress core's own General
+  // Settings save does the same — so Playwright can never click in it again.
+  // A new tab is unaffected. It's a quirk of the test browser, not the plugin.
+  const fresh = async () => {
+    const p = await page.context().newPage();
+    await p.goto('/wp-admin/admin.php?page=sermon-suite-settings');
+    return p;
+  };
 
-  // Publish the synced drafts, then view whichever series they belong to.
-  const drafts = await fetchDrafts(page, nonce);
-  for (const d of drafts.filter((x) => ['Stub Episode One', 'Stub Episode Two'].includes(x.title?.raw))) {
-    await page.request.post(`/wp-json/wp/v2/ss_sermon/${d.id}`, {
-      headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
-      data: { status: 'publish' },
-    });
-  }
-  const pub = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
-  const one = pub.find((x) => x.title === 'Stub Episode One');
-  expect(one, 'synced episode did not publish').toBeTruthy();
-  await page.goto(`/?p=${one.series_id}`);
-  const html = await page.content();
+  let p = await fresh();
+  await p.locator('#ss-spotify-show').fill(`https://open.spotify.com/show/${SHOW}`);
+  await p.locator('input[name="spotify_auto_sync"]').check();
+  await p.locator('#submit').click();
+  await expect(p.locator('#ss-spotify-schedule')).toContainText('Next automatic check');
+  await p.close();
 
-  // These URLs exist only in the stubbed API response — Spotify's oEmbed
-  // could never return them — so seeing them proves the stored artwork was
-  // used and nothing was fetched during the render. The 300px image is
-  // preferred when the API offers several sizes.
-  expect(html).toContain('https://i.scdn.co/image/stub-art-300-one');
-  expect(html).not.toContain('stub-art-640-one');
-  expect(html).toContain('https://i.scdn.co/image/stub-art-300-two');
-});
-
-test('the sync refuses to run against a post that is not a series', async ({ page }) => {
-  test.setTimeout(120_000);
-  const nonce = await restNonce(page);
-  const seriesId = await makeSeries(page, nonce, `Guard Series ${Date.now()}`);
-  const sNonce = await syncNonce(page, seriesId);
-  const pages = await (await page.request.get('/wp-json/wp/v2/pages?slug=sermons')).json();
-
-  const res = await runSync(page, sNonce, pages[0].id, `https://open.spotify.com/show/${SHOW}`);
-  const body = await res.json();
-  expect(body.success).toBe(false);
-  expect(String(body.data)).toContain('permission');
+  p = await fresh();
+  await expect(p.locator('input[name="spotify_auto_sync"]')).toBeChecked();
+  await p.locator('input[name="spotify_auto_sync"]').uncheck();
+  await p.locator('#submit').click();
+  await expect(p.locator('#ss-spotify-schedule')).not.toContainText('Next automatic check');
+  await p.close();
 });

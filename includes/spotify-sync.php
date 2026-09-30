@@ -200,61 +200,60 @@ function ss_spotify_thumb( $sermon_id ) {
     return $thumb;
 }
 
-// ── Show sync (AJAX) ──────────────────────────────────────────────────────────
-add_action( 'wp_ajax_ss_spotify_sync_show', 'ss_spotify_handle_sync' );
+// ── Feed sync ─────────────────────────────────────────────────────────────────
+//
+// A church's Spotify show is one feed of every sermon, week after week, across
+// every series — unlike a YouTube playlist, which usually is one series. So
+// the show is set once, site-wide (Sermons → Settings), every episode comes in
+// as a draft sermon with no series, and sermons are sorted into series
+// afterwards from the All Sermons list (see admin/sermon-list.php).
 
-function ss_spotify_handle_sync() {
-    check_ajax_referer( 'ss_spotify_sync', 'nonce' );
-    if ( ! current_user_can( 'edit_posts' ) ) wp_send_json_error( 'Unauthorized' );
+const SS_SPOTIFY_OPT_SHOW = 'sermon_suite_spotify_show';
+const SS_SPOTIFY_OPT_AUTO = 'sermon_suite_spotify_auto_sync';
+const SS_SPOTIFY_OPT_LAST = 'sermon_suite_spotify_last_sync';
+const SS_SPOTIFY_CRON     = 'ss_spotify_daily_sync';
 
-    $series_id = absint( $_POST['series_id'] ?? 0 );
-    $show      = sanitize_text_field( $_POST['show'] ?? '' );
-
-    if ( ! $series_id ) wp_send_json_error( 'Missing series ID' );
-
-    // Only sync into a real series this user may edit — otherwise any
-    // Contributor could write onto, and attach sermons to, an arbitrary post.
-    if ( get_post_type( $series_id ) !== 'ss_series' || ! current_user_can( 'edit_post', $series_id ) ) {
-        wp_send_json_error( 'You do not have permission to sync into that series.' );
-    }
-    if ( ! $show )      wp_send_json_error( 'Missing show link' );
-
+/**
+ * Import every episode of the show that isn't already a sermon.
+ *
+ * Returns [ 'created', 'skipped', 'errors', 'log' ] or a WP_Error. Episodes
+ * are matched on their Spotify id, so re-running only adds what's new and
+ * never touches a sermon someone has since edited or filed into a series.
+ */
+function ss_spotify_sync_feed( $show ) {
     $ref = ss_get_spotify_ref( $show );
     if ( ! $ref ) {
-        wp_send_json_error( 'Could not read a Spotify show from: ' . $show );
+        return new WP_Error( 'spotify_bad_show', 'Could not read a Spotify show from: ' . $show );
     }
     if ( $ref['type'] !== 'show' ) {
-        wp_send_json_error( 'That looks like a single episode. Paste the show link (open.spotify.com/show/…) to sync a whole podcast.' );
+        return new WP_Error( 'spotify_not_show', 'That looks like a single episode. Paste the show link (open.spotify.com/show/…) to sync the whole podcast.' );
     }
 
-    update_post_meta( $series_id, '_ss_series_spotify_show', $show );
-
     $episodes = Sermon_Suite_Spotify_API::get_show_episodes( $ref['id'] );
-    if ( is_wp_error( $episodes ) ) wp_send_json_error( $episodes->get_error_message() );
-    if ( empty( $episodes ) )       wp_send_json_error( 'That show has no episodes Spotify will return.' );
+    if ( is_wp_error( $episodes ) ) return $episodes;
+    if ( empty( $episodes ) ) {
+        return new WP_Error( 'spotify_empty', 'That show has no episodes Spotify will return.' );
+    }
 
     $log = []; $created = 0; $skipped = 0; $errors = 0;
 
     foreach ( $episodes as $ep ) {
         $ep_id = $ep['id'] ?? '';
         if ( ! $ep_id ) continue;
-        $title    = wp_strip_all_tags( $ep['name'] ?? '' );
+        $title      = wp_strip_all_tags( $ep['name'] ?? '' );
         $title_html = esc_html( $title );
-        $desc     = $ep['description'] ?? '';
-        $pub_date = substr( (string) ( $ep['release_date'] ?? '' ), 0, 10 );
+        $desc       = $ep['description'] ?? '';
+        $pub_date   = substr( (string) ( $ep['release_date'] ?? '' ), 0, 10 );
         if ( ! $title ) continue;
 
-        // Same dedupe shape as the YouTube sync: the source id is recorded on
-        // the post, so re-syncing adds only what's new and never touches a
-        // sermon someone has since edited.
         $existing = get_posts([
             'post_type'      => 'ss_sermon',
             'post_status'    => 'any',
             'posts_per_page' => 1,
+            'fields'         => 'ids',
             'meta_query'     => [[ 'key' => '_ss_spotify_synced', 'value' => $ep_id ]],
         ]);
-        if ( ! empty( $existing ) ) {
-            $log[] = "↩ Already synced: {$title_html}";
+        if ( $existing ) {
             $skipped++;
             continue;
         }
@@ -265,7 +264,7 @@ function ss_spotify_handle_sync() {
             'post_content' => wp_kses_post( $desc ),
             'post_status'  => 'draft',
             'post_date'    => $pub_date ? $pub_date . ' 00:00:00' : current_time( 'mysql' ),
-        ]);
+        ], true );
         if ( is_wp_error( $post_id ) ) {
             $log[] = "❌ Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
             $errors++;
@@ -273,6 +272,8 @@ function ss_spotify_handle_sync() {
         }
 
         update_post_meta( $post_id, '_ss_spotify_synced', $ep_id );
+        update_post_meta( $post_id, '_ss_spotify_url',    'https://open.spotify.com/episode/' . $ep_id );
+        if ( $pub_date ) update_post_meta( $post_id, '_ss_sermon_date', $pub_date );
         // The API response already carries the artwork; storing it means
         // synced sermons never need a lookup while a page renders.
         $image = ss_spotify_pick_image( $ep['images'] ?? [] );
@@ -280,44 +281,78 @@ function ss_spotify_handle_sync() {
             update_post_meta( $post_id, '_ss_spotify_image',     esc_url_raw( $image ) );
             update_post_meta( $post_id, '_ss_spotify_image_src', $ep_id );
         }
-        update_post_meta( $post_id, '_ss_spotify_url',    'https://open.spotify.com/episode/' . $ep_id );
-        update_post_meta( $post_id, '_ss_series_id',      $series_id );
-        if ( $pub_date ) update_post_meta( $post_id, '_ss_sermon_date', $pub_date );
 
-        $default_speaker = get_post_meta( $series_id, '_ss_series_default_speaker', true );
-        if ( $default_speaker ) wp_set_post_terms( $post_id, [ $default_speaker ], 'ss_speaker' );
-
-        $log[] = "✅ Created draft: <a href=\"" . get_edit_post_link( $post_id ) . "\" target=\"_blank\">{$title_html}</a>" . ( $pub_date ? ' (' . esc_html( $pub_date ) . ')' : '' );
+        $log[] = "✅ Created draft: <a href=\"" . esc_url( get_edit_post_link( $post_id ) ) . "\" target=\"_blank\">{$title_html}</a>"
+               . ( $pub_date ? ' (' . esc_html( $pub_date ) . ')' : '' );
         $created++;
     }
 
-    // Number the series chronologically, leaving any existing order alone.
-    $all = get_posts([
-        'post_type'      => 'ss_sermon',
+    update_option( SS_SPOTIFY_OPT_LAST, current_time( 'mysql' ), false );
+
+    return compact( 'created', 'skipped', 'errors', 'log' );
+}
+
+/** Sync Now, from the settings screen. */
+add_action( 'wp_ajax_ss_spotify_sync_feed', 'ss_spotify_ajax_sync_feed' );
+function ss_spotify_ajax_sync_feed() {
+    check_ajax_referer( 'ss_spotify_sync', 'nonce' );
+    // A site-wide setting that creates sermons in bulk: administrators only,
+    // matching the settings screen it lives on.
+    if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Unauthorized' );
+
+    $show = sanitize_text_field( wp_unslash( $_POST['show'] ?? '' ) );
+    if ( ! $show ) wp_send_json_error( 'Paste your Spotify show link first.' );
+    // Save what was typed, so Sync Now works without a separate Save.
+    update_option( SS_SPOTIFY_OPT_SHOW, $show );
+
+    $result = ss_spotify_sync_feed( $show );
+    if ( is_wp_error( $result ) ) wp_send_json_error( $result->get_error_message() );
+
+    $summary = "{$result['created']} new sermon(s) imported as drafts, {$result['skipped']} already imported"
+             . ( $result['errors'] ? ", {$result['errors']} error(s)" : '' ) . '.';
+    if ( $result['created'] > 0 ) {
+        $summary .= ' <a href="' . esc_url( admin_url( 'edit.php?post_type=ss_sermon&ss_series_filter=none' ) ) . '">Sort them into series →</a>';
+    }
+    wp_send_json_success( $result + [ 'summary' => $summary ] );
+}
+
+// ── Optional daily check ──────────────────────────────────────────────────────
+// Off by default. When on, new episodes arrive as drafts on their own.
+
+add_action( SS_SPOTIFY_CRON, 'ss_spotify_run_scheduled_sync' );
+function ss_spotify_run_scheduled_sync() {
+    $show = get_option( SS_SPOTIFY_OPT_SHOW, '' );
+    if ( ! $show || get_option( SS_SPOTIFY_OPT_AUTO ) !== '1' ) return;
+    ss_spotify_sync_feed( $show ); // failures are simply retried tomorrow
+}
+
+/** Keep the schedule in step with the setting. Called when settings save. */
+function ss_spotify_update_schedule() {
+    $want = get_option( SS_SPOTIFY_OPT_AUTO ) === '1' && get_option( SS_SPOTIFY_OPT_SHOW, '' ) !== '';
+    $next = wp_next_scheduled( SS_SPOTIFY_CRON );
+    if ( $want && ! $next ) {
+        wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', SS_SPOTIFY_CRON );
+    } elseif ( ! $want && $next ) {
+        wp_clear_scheduled_hook( SS_SPOTIFY_CRON );
+    }
+}
+
+/**
+ * One-time carry-over from 3.0.x, where the show link lived on a series: if
+ * no site-wide show is set yet, adopt the one already entered on a series.
+ */
+add_action( 'admin_init', 'ss_spotify_migrate_series_show' );
+function ss_spotify_migrate_series_show() {
+    if ( get_option( SS_SPOTIFY_OPT_SHOW, '' ) !== '' || get_option( 'ss_spotify_show_migrated' ) ) return;
+    update_option( 'ss_spotify_show_migrated', '1', false );
+    $series = get_posts([
+        'post_type'      => 'ss_series',
         'post_status'    => 'any',
-        'posts_per_page' => -1,
-        'meta_query'     => [[ 'key' => '_ss_series_id', 'value' => $series_id ]],
-        'orderby'        => 'date',
-        'order'          => 'ASC',
+        'posts_per_page' => 1,
+        'fields'         => 'ids',
+        'meta_query'     => [[ 'key' => '_ss_series_spotify_show', 'value' => '', 'compare' => '!=' ]],
     ]);
-    foreach ( $all as $i => $s ) {
-        if ( ! get_post_meta( $s->ID, '_ss_series_order', true ) ) {
-            update_post_meta( $s->ID, '_ss_series_order', $i + 1 );
-        }
+    if ( $series ) {
+        update_option( SS_SPOTIFY_OPT_SHOW, get_post_meta( $series[0], '_ss_series_spotify_show', true ) );
     }
-
-    update_post_meta( $series_id, '_ss_series_spotify_last_sync', current_time( 'mysql' ) );
-
-    $summary = "{$created} new sermon(s) created as drafts, {$skipped} already existed, {$errors} error(s).";
-    if ( $created > 0 ) {
-        $summary .= ' <a href="' . admin_url( 'edit.php?post_type=ss_sermon&post_status=draft' ) . '">View drafts →</a>';
-    }
-
-    wp_send_json_success([
-        'log'     => $log,
-        'summary' => $summary,
-        'created' => $created,
-        'skipped' => $skipped,
-        'errors'  => $errors,
-    ]);
 }
