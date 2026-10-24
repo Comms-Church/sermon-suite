@@ -58,6 +58,7 @@ while ( have_posts() ) : the_post();
                     <?php if ($youtube_id) : ?>
                     <div class="ss-video-wrap">
                         <iframe src="https://www.youtube.com/embed/<?php echo esc_attr($youtube_id); ?>?rel=0"
+                                title="<?php echo esc_attr( get_the_title($sermon_id) ); ?> — video"
                                 frameborder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen></iframe>

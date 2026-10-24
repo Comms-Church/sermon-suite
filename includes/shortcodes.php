@@ -318,6 +318,7 @@ function ss_sc_sermon_player( $atts ) {
         <?php if ($youtube_id) : ?>
         <div class="gcc-video-wrap">
             <iframe src="https://www.youtube.com/embed/<?php echo esc_attr($youtube_id); ?>?rel=0"
+                    title="<?php echo esc_attr( get_the_title($id) ); ?> — video"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen loading="lazy"></iframe>

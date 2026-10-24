@@ -274,7 +274,7 @@ function ss_render_sermon_editor() {
         <div class="gcc-editor-notice gcc-notice-info">🔗 Synced from YouTube <code><?php echo esc_html($yt_synced); ?></code>. Your edits here won't be overwritten by future syncs.</div>
         <?php endif; ?>
 
-        <div id="gcc-toast" class="gcc-save-feedback" style="display:none;"></div>
+        <div id="gcc-toast" class="gcc-save-feedback" role="status" aria-live="polite" style="display:none;"></div>
 
         <div class="gcc-editor-body">
 
@@ -340,7 +340,7 @@ function ss_render_sermon_editor() {
                                     <option value="notes"      <?php selected($r['type']??'','notes');      ?>>📝 Notes</option>
                                     <option value="link"       <?php selected($r['type']??'','link');       ?>>🔗 Link</option>
                                 </select>
-                                <button type="button" class="gcc-remove-btn gcc-remove-resource">✕</button>
+                                <button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource">✕</button>
                             </div>
                         <?php endforeach; ?>
                         </div>
@@ -602,6 +602,10 @@ function ss_render_sermon_editor() {
     </script>
     <script>
     jQuery(function($){
+        // The native WP editor warns before leaving with unsaved edits; this one must too.
+        var dirty=false;
+        $('.gcc-custom-editor').on('input change', ':input', function(){ dirty=true; });
+        $(window).on('beforeunload', function(e){ if (dirty) { e.preventDefault(); return ''; } });
         var bibleData = <?php echo json_encode(ss_bible_data()); ?>;
         var bibleVer  = '<?php echo esc_js($bible_ver); ?>';
 
@@ -845,7 +849,7 @@ function ss_render_sermon_editor() {
                 '<input type="text" class="gcc-input" name="res_label[]" placeholder="Label" />' +
                 '<input type="url"  class="gcc-input" name="res_url[]"   placeholder="https://…" />' +
                 '<select name="res_type[]" class="gcc-select"><option value="pdf">📄 PDF</option><option value="devotional">📖 Devotional</option><option value="notes">📝 Notes</option><option value="link">🔗 Link</option></select>' +
-                '<button type="button" class="gcc-remove-btn gcc-remove-resource">✕</button>' +
+                '<button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource">✕</button>' +
                 '</div>'
             );
         });
@@ -872,19 +876,27 @@ function ss_render_sermon_editor() {
             }, function(res){
                 btn.prop('disabled',false).text('Save Sermon');
                 if (res.success) {
+                    dirty=false;
                     if (!$('#gcc-post-id').val()) { window.location.href=res.data.edit_url+'&saved=1'; return; }
                     toast(res.data.message,'success');
                 } else { toast('Error: '+res.data,'error'); }
+            }).fail(function(){
+                btn.prop('disabled',false).text('Save Sermon');
+                toast('Couldn\u2019t save \u2014 check your connection and try again. Your changes are still on this page.','error');
             });
         });
 
         if (new URLSearchParams(window.location.search).get('saved')) toast('Sermon saved!','success');
 
+        // Errors stay up until clicked away; only confirmations auto-hide.
         function toast(msg,type){
-            $('#gcc-toast').text(msg).removeClass('gcc-feedback-success gcc-feedback-error')
+            var $t=$('#gcc-toast');
+            clearTimeout(toast.timer);
+            $t.stop(true,true).text(msg).removeClass('gcc-feedback-success gcc-feedback-error')
                 .addClass('gcc-feedback-'+type).show();
-            setTimeout(function(){ $('#gcc-toast').fadeOut(); },3000);
+            if (type!=='error') toast.timer=setTimeout(function(){ $t.fadeOut(); },3000);
         }
+        $('#gcc-toast').on('click', function(){ $(this).fadeOut(); });
     });
     </script>
     <?php
@@ -930,7 +942,7 @@ function ss_render_series_editor() {
             </div>
         </div>
 
-        <div id="gcc-toast" class="gcc-save-feedback" style="display:none;"></div>
+        <div id="gcc-toast" class="gcc-save-feedback" role="status" aria-live="polite" style="display:none;"></div>
 
         <div class="gcc-editor-body">
 
@@ -1166,6 +1178,10 @@ function ss_render_series_editor() {
     </script>
     <script>
     jQuery(function($){
+        // The native WP editor warns before leaving with unsaved edits; this one must too.
+        var dirty=false;
+        $('.gcc-custom-editor').on('input change', ':input', function(){ dirty=true; });
+        $(window).on('beforeunload', function(e){ if (dirty) { e.preventDefault(); return ''; } });
         // Media picker helper
         function pickImage(hiddenId, wellId, emptyId) {
             var frame = wp.media({ title:'Select Image', button:{text:'Use this image'}, multiple:false, library:{type:'image'} });
@@ -1221,19 +1237,27 @@ function ss_render_series_editor() {
             }, function(res){
                 $('#gcc-save-btn').prop('disabled',false).text('Save Series');
                 if (res.success){
+                    dirty=false;
                     if (!$('#gcc-post-id').val()) { window.location.href=res.data.edit_url+'&saved=1'; return; }
                     toast(res.data.message,'success');
                 } else { toast('Error: '+res.data,'error'); }
+            }).fail(function(){
+                $('#gcc-save-btn').prop('disabled',false).text('Save Series');
+                toast('Couldn\u2019t save \u2014 check your connection and try again. Your changes are still on this page.','error');
             });
         });
 
         if (new URLSearchParams(window.location.search).get('saved')) toast('Series saved!','success');
 
+        // Errors stay up until clicked away; only confirmations auto-hide.
         function toast(msg,type){
-            $('#gcc-toast').text(msg).removeClass('gcc-feedback-success gcc-feedback-error')
+            var $t=$('#gcc-toast');
+            clearTimeout(toast.timer);
+            $t.stop(true,true).text(msg).removeClass('gcc-feedback-success gcc-feedback-error')
                 .addClass('gcc-feedback-'+type).show();
-            setTimeout(function(){ $('#gcc-toast').fadeOut(); },3000);
+            if (type!=='error') toast.timer=setTimeout(function(){ $t.fadeOut(); },3000);
         }
+        $('#gcc-toast').on('click', function(){ $(this).fadeOut(); });
     });
     </script>
     <?php

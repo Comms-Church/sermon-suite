@@ -57,7 +57,11 @@
     transition: var(--gcc-transition);
     background: var(--gcc-surface);
 }
-.gcc-tag:hover,
+.gcc-tag:hover {
+    border-color: var(--gcc-accent);
+    color: var(--gcc-accent);
+    text-decoration: none;
+}
 .gcc-tag.active {
     background: var(--gcc-accent);
     border-color: var(--gcc-accent);
@@ -221,7 +225,8 @@
     gap: 4px;
     margin-bottom: 10px;
 }
-.gcc-topic-badge {
+.gcc-topic-badge,
+.gcc-topic-badge-light {
     font-size: calc(var(--gcc-fs, 17px) * 0.72);
     font-weight: 600;
     text-transform: uppercase;
@@ -235,7 +240,6 @@
 }
 .gcc-topic-badge:hover { background: var(--gcc-accent); color: var(--gcc-button-text); }
 .gcc-topic-badge-light {
-    composes: gcc-topic-badge;
     background: rgba(255,255,255,0.2);
     color: #fff;
 }
@@ -509,6 +513,13 @@
     padding-bottom: 10px;
     border-bottom: 2px solid var(--gcc-accent);
 }
+
+/* Large display type reads loose at default tracking — tighten it. */
+.gcc-sermon-title,
+.gcc-series-hero-content h1,
+.gcc-hero-title,
+.ss-sermon-title,
+.ss-tax-title { letter-spacing: -0.02em; }
 
 /* ── Responsive tweaks ────────────────────────────────────────────────── */
 @media (max-width: 600px) {
@@ -1641,4 +1652,50 @@
 .ss-transcript-body {
     max-height: 420px;
     overflow-y: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOCUS, PRESS & USER PREFERENCES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Keyboard focus — many themes strip the default outline. */
+.gcc-archive-wrap :is(a, button):focus-visible,
+.ss-message-list-wrap :is(a, button):focus-visible,
+.ss-sermon-page :is(a, button):focus-visible,
+.ss-tax-page :is(a, button):focus-visible,
+:is(.gcc-sermon-card, .gcc-series-card, .gcc-hero-wrap, .gcc-single-wrap, .ss-topics-directory) :is(a, button):focus-visible {
+    outline: 2px solid var(--gcc-accent);
+    outline-offset: 2px;
+}
+/* Hover-only reveals also show for keyboard focus. */
+.gcc-card-thumb-wrap:focus-visible .gcc-play-btn,
+.gcc-sermon-row-item:focus-visible .gcc-sermon-row-play { opacity: 1; }
+
+/* Feedback on press, not on release. */
+:is(.gcc-tag, .ss-topic-chip, .gcc-topic-badge, .gcc-watch-btn, .gcc-hero-watch-btn,
+    .gcc-hero-resource-btn, .gcc-resource-item, .ss-view-series-btn,
+    .ss-pagination .page-numbers, .ss-nav-card):active {
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gcc-sermon-card:hover,
+    .gcc-series-card:hover,
+    .ss-topic-tile:hover,
+    .gcc-series-card:hover .gcc-series-card-img img,
+    .gcc-sermon-row-item:hover .gcc-sermon-row-arrow { transform: none; }
+    .ss-notes-chevron,
+    .gcc-notes-arrow { transition: none; }
+}
+
+@media (prefers-contrast: more) {
+    .gcc-sermon-card,
+    .gcc-series-card { box-shadow: none; border: 1px solid var(--gcc-text); }
+    .gcc-hero-overlay,
+    .gcc-series-hero-overlay { background: rgba(0,0,0,0.85); }
+    .gcc-hero-meta,
+    .gcc-hero-series,
+    .gcc-hero-desc,
+    .gcc-series-hero-meta { opacity: 1; }
 }
