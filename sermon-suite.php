@@ -93,7 +93,10 @@ function sermon_suite_output_brand_css() {
     $size_map = [ 'small' => 15, 'medium' => 17, 'large' => 19, 'xlarge' => 21 ];
     $size_key = get_option( 'sermon_suite_text_size', 'medium' );
     $base_px  = $size_map[ $size_key ] ?? 17;
-    echo "  --gcc-fs:           " . esc_attr( $base_px ) . "px;\n";
+    // Pixel floor defeats the 62.5% trick; the rem term still grows with the
+    // reader's own browser text-size setting.
+    $base_rem = $base_px / 16;
+    echo "  --gcc-fs:           max(" . esc_attr( $base_px ) . "px, " . esc_attr( $base_rem ) . "rem);\n";
     // Legacy variable kept for any custom CSS written against 1.4.x.
     $scale_map = [ 'small' => '0.92', 'medium' => '1', 'large' => '1.12', 'xlarge' => '1.25' ];
     $scale     = $scale_map[ $size_key ] ?? '1';

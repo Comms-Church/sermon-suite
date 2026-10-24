@@ -71,7 +71,7 @@ function ss_yt_handle_sync() {
         ]);
 
         if ( is_wp_error($post_id) ) {
-            $log[]  = "❌ Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
+            $log[]  = "Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
             $errors++;
             continue;
         }
@@ -88,7 +88,7 @@ function ss_yt_handle_sync() {
             wp_set_post_terms($post_id, [$default_speaker], 'ss_speaker');
         }
 
-        $log[]  = "✅ Created draft: <a href=\"" . get_edit_post_link($post_id) . "\" target=\"_blank\">{$title_html}</a> (" . esc_html( $pub_date ) . ")";
+        $log[]  = "Created draft: <a href=\"" . get_edit_post_link($post_id) . "\" target=\"_blank\">{$title_html}</a> (" . esc_html( $pub_date ) . ")";
         $created++;
     }
 

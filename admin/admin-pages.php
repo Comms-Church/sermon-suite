@@ -23,7 +23,7 @@ function sermon_suite_admin_menu() {
     add_submenu_page( 'sermon-suite', 'Speakers',    'Speakers',    'manage_categories', 'edit-tags.php?taxonomy=ss_speaker&post_type=ss_sermon', '' );
     add_submenu_page( 'sermon-suite', 'Topics',      'Topics',      'manage_categories', 'edit-tags.php?taxonomy=ss_topic&post_type=ss_sermon', '' );
     // Tools
-    add_submenu_page( 'sermon-suite', 'Shortcode Generator', '⚡ Shortcodes', 'edit_posts', 'sermon-suite-shortcodes', 'sermon_suite_shortcode_generator_page' );
+    add_submenu_page( 'sermon-suite', 'Shortcode Generator', 'Shortcodes', 'edit_posts', 'sermon-suite-shortcodes', 'sermon_suite_shortcode_generator_page' );
     add_submenu_page( 'sermon-suite', 'Import from Series Engine', 'Import CSV', 'manage_options', 'sermon-suite-import',   'sermon_suite_import_page' );
     add_submenu_page( 'sermon-suite', 'Settings',      'Settings', 'manage_options', 'sermon-suite-settings', 'sermon_suite_settings_page' );
     add_submenu_page( 'sermon-suite', 'REST API Docs', 'API Docs', 'manage_options', 'sermon-suite-api-docs', 'sermon_suite_api_docs_page' );
@@ -192,7 +192,7 @@ function sermon_suite_settings_page() {
             <?php wp_nonce_field('sermon_suite_settings'); ?>
 
             <!-- ── Brand Colors ───────────────────────────────────────────── -->
-            <h2 class="gcc-settings-section-title">🎨 Brand Colors</h2>
+            <h2 class="gcc-settings-section-title">Brand Colors</h2>
             <p class="description" style="margin-bottom:16px;">
                 These control every color in the sermon library — cards, buttons, tags, and text.
                 Changes are applied instantly to the front end via inline CSS variables.
@@ -301,7 +301,7 @@ function sermon_suite_settings_page() {
                     <div class="gcc-preview-body">
                         <div class="gcc-preview-title">Sample Sermon Title</div>
                         <div class="gcc-preview-byline">Mike Sigman · July 11, 2021</div>
-                        <div class="gcc-preview-scripture">📖 Philippians 1:1-2</div>
+                        <div class="gcc-preview-scripture">Philippians 1:1-2</div>
                         <span class="gcc-preview-tag">Prayer</span>
                         <span class="gcc-preview-tag">Faith</span>
                         <a href="#" class="gcc-preview-btn" onclick="return false;">Watch</a>
@@ -312,7 +312,7 @@ function sermon_suite_settings_page() {
             <hr style="margin: 32px 0;" />
 
             <!-- ── General Settings ───────────────────────────────────────── -->
-            <h2 class="gcc-settings-section-title">⚙️ General Settings</h2>
+            <h2 class="gcc-settings-section-title">General Settings</h2>
             <table class="form-table">
                 <tr>
                     <th>Sermons Page</th>
@@ -426,10 +426,10 @@ function sermon_suite_settings_page() {
                                             $('#ss-spotify-log').html(res.data.log.map(function(l){ return '<div>'+l+'</div>'; }).join('')).show();
                                         }
                                     } else {
-                                        $('#ss-spotify-status').text('❌ ' + ((res && res.data) || 'Sync failed.'));
+                                        $('#ss-spotify-status').text(((res && res.data) || 'Sync failed.'));
                                     }
                                 }).fail(function(){
-                                    $('#ss-spotify-status').text('❌ Request failed.');
+                                    $('#ss-spotify-status').text('Request failed.');
                                 }).always(function(){
                                     $btn.prop('disabled', false);
                                     $('#ss-spotify-spin').removeClass('is-active');
@@ -470,10 +470,10 @@ function sermon_suite_settings_page() {
                                     if (res.ok && res.j && res.j.ok) {
                                         if (res.j.video_count > 0) {
                                             out.style.color = '#1a7f37';
-                                            out.textContent = '✅ Connected — ' + res.j.video_count + ' video(s) found';
+                                            out.textContent = 'Connected — ' + res.j.video_count + ' video(s) found';
                                         } else {
                                             out.style.color = '#996b00';
-                                            out.textContent = '⚠️ Connected, but 0 videos found.';
+                                            out.textContent = 'Connected, but 0 videos found.';
                                             if (res.j.raw_sample) {
                                                 var pre = document.createElement('pre');
                                                 pre.style.cssText = 'margin-top:8px;padding:10px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;font-size:11px;max-width:640px;white-space:pre-wrap;word-break:break-all;';
@@ -483,11 +483,11 @@ function sermon_suite_settings_page() {
                                         }
                                     } else {
                                         out.style.color = '#b32d2e';
-                                        out.textContent = '❌ ' + ((res.j && res.j.message) ? res.j.message : 'Connection failed');
+                                        out.textContent = ((res.j && res.j.message) ? res.j.message : 'Connection failed');
                                     }
                                 }).catch(function(){
                                     out.style.color = '#b32d2e';
-                                    out.textContent = '❌ Request failed';
+                                    out.textContent = 'Request failed';
                                 });
                             });
                         })();

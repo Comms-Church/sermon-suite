@@ -106,7 +106,7 @@ function sermon_suite_add_meta_boxes() {
 
     add_meta_box(
         'ss_series_yt_sync',
-        '🔄 YouTube Playlist Sync',
+        'YouTube Playlist Sync',
         'sermon_suite_render_yt_sync_box',
         'ss_series',
         'normal',
@@ -136,7 +136,7 @@ function sermon_suite_render_sermon_meta_box( $post ) {
     ?>
     <?php if ( $yt_synced ) : ?>
     <div style="background:#e8f4fd;border-left:3px solid #2196f3;padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0;font-size:0.85rem;">
-        🔗 Synced from YouTube video <code><?php echo esc_html($yt_synced); ?></code>.
+        Synced from YouTube video <code><?php echo esc_html($yt_synced); ?></code>.
         Edit freely — re-syncing will not overwrite fields you've filled in.
     </div>
     <?php endif; ?>
@@ -268,7 +268,7 @@ function sermon_suite_render_resources_meta_box( $post ) {
                     <option value="devotional" <?php selected( $r['type'] ?? '', 'devotional' ); ?>>Devotional</option>
                     <option value="notes"      <?php selected( $r['type'] ?? '', 'notes' ); ?>>Notes</option>
                 </select>
-                <button type="button" class="button gcc-remove-resource">✕</button>
+                <button type="button" class="button gcc-remove-resource" aria-label="Remove resource"><span aria-hidden="true">✕</span></button>
             </div>
             <?php endforeach; ?>
         </div>
@@ -285,7 +285,7 @@ function sermon_suite_render_resources_meta_box( $post ) {
                 + '<option value="pdf">PDF</option><option value="link">Link</option>'
                 + '<option value="devotional">Devotional</option><option value="notes">Notes</option>'
                 + '</select>'
-                + '<button type="button" class="button gcc-remove-resource">✕</button>'
+                + '<button type="button" class="button gcc-remove-resource" aria-label="Remove resource"><span aria-hidden="true">✕</span></button>'
                 + '</div>';
             $('#gcc-resources-list').append(row);
             idx++;
@@ -426,7 +426,7 @@ function sermon_suite_render_yt_sync_box( $post ) {
     </p>
     <?php if ( ! $api_key ) : ?>
     <div class="notice notice-warning inline" style="margin:0 0 12px;">
-        <p>⚠️ No YouTube API key set.
+        <p>No YouTube API key set.
            <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add one in Settings</a>
            to enable playlist sync.</p>
     </div>
@@ -455,7 +455,7 @@ function sermon_suite_render_yt_sync_box( $post ) {
         <button type="button" id="gcc-yt-sync-btn" class="button button-primary"
                 data-series-id="<?php echo $post->ID; ?>"
                 <?php echo !$api_key ? 'disabled' : ''; ?>>
-            🔄 Sync Playlist Now
+            Sync Playlist Now
         </button>
         <span id="gcc-sync-spinner" class="spinner" style="float:none;vertical-align:middle;display:none;"></span>
         <span id="gcc-sync-status" style="margin-left:10px;font-style:italic;"></span>
@@ -471,7 +471,17 @@ function sermon_suite_render_yt_sync_box( $post ) {
         $('#gcc-yt-sync-btn').on('click', function(){
             var seriesId  = $(this).data('series-id');
             var playlist  = $('#ss_series_yt_playlist').val().trim();
-            if (!playlist) { alert('Please enter a playlist URL or ID first.'); return; }
+            if (!playlist) {
+                // Inline message rather than an alert(); clears once the field changes.
+                var $pl = $('#ss_series_yt_playlist');
+                if (!$('#ss-playlist-error').length) {
+                    $('<p id="ss-playlist-error" role="alert" style="color:#b32d2e;margin:4px 0 0"></p>')
+                        .text('Enter a playlist URL or ID first.').insertAfter($pl);
+                }
+                $pl.attr({ 'aria-invalid': 'true', 'aria-describedby': 'ss-playlist-error' }).trigger('focus')
+                    .one('input', function(){ $pl.removeAttr('aria-invalid aria-describedby'); $('#ss-playlist-error').remove(); });
+                return;
+            }
 
             var btn = $(this);
             btn.prop('disabled', true);

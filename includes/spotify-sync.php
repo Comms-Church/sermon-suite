@@ -266,7 +266,7 @@ function ss_spotify_sync_feed( $show ) {
             'post_date'    => $pub_date ? $pub_date . ' 00:00:00' : current_time( 'mysql' ),
         ], true );
         if ( is_wp_error( $post_id ) ) {
-            $log[] = "❌ Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
+            $log[] = "Error creating: {$title_html} — " . esc_html( $post_id->get_error_message() );
             $errors++;
             continue;
         }
@@ -282,7 +282,7 @@ function ss_spotify_sync_feed( $show ) {
             update_post_meta( $post_id, '_ss_spotify_image_src', $ep_id );
         }
 
-        $log[] = "✅ Created draft: <a href=\"" . esc_url( get_edit_post_link( $post_id ) ) . "\" target=\"_blank\">{$title_html}</a>"
+        $log[] = "Created draft: <a href=\"" . esc_url( get_edit_post_link( $post_id ) ) . "\" target=\"_blank\">{$title_html}</a>"
                . ( $pub_date ? ' (' . esc_html( $pub_date ) . ')' : '' );
         $created++;
     }

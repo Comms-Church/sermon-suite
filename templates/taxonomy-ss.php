@@ -79,8 +79,8 @@ $is_series_tax = in_array( $term->taxonomy, [ 'ss_series_category' ], true );
             'format'    => '?paged=%#%',
             'current'   => max(1, get_query_var('paged')),
             'total'     => $GLOBALS['wp_query']->max_num_pages,
-            'prev_text' => '← Previous',
-            'next_text' => 'Next →',
+            'prev_text' => ss_icon( 'arrow-left' ) . ' Previous',
+            'next_text' => 'Next ' . ss_icon( 'arrow-right' ),
         ]);
         if ( $links ) echo '<div class="ss-pagination">' . $links . '</div>';
         ?>

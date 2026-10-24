@@ -158,7 +158,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
             } else { $tid=0; $counters['topics']++; }
             $topic_map[$se_id]=$tid;
         }
-        $log[] = '✅ Topics: '.count($topic_map);
+        $log[] = 'Topics: '.count($topic_map);
 
         // ── Series Categories (seriestype records) ──────────────────────────
         $category_map = $job['category_map'] ?? [];
@@ -182,7 +182,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
             }
         }
         $job['category_map'] = $category_map;
-        $log[] = '✅ Categories: '.count($category_map);
+        $log[] = 'Categories: '.count($category_map);
 
         // Speakers
         foreach ( ($parsed['speaker']??[]) as $row ) {
@@ -195,7 +195,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
             } else { $tid=0; $counters['speakers']++; }
             $speaker_map[$se_id]=$tid;
         }
-        $log[] = '✅ Speakers: '.count($speaker_map);
+        $log[] = 'Speakers: '.count($speaker_map);
 
         // Series
         foreach ( ($parsed['series']??[]) as $row ) {
@@ -211,7 +211,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
                 if (!empty($ex)) { $series_map[$se_id]=$ex[0]->ID; $counters['skipped']++; continue; }
             }
             $pid=wp_insert_post(['post_type'=>'ss_series','post_title'=>$title,'post_content'=>wp_kses_post($desc),'post_status'=>'publish']);
-            if (is_wp_error($pid)) { $log[]="❌ Series: $title"; $counters['errors']++; continue; }
+            if (is_wp_error($pid)) { $log[]="Failed — Series: $title"; $counters['errors']++; continue; }
             update_post_meta($pid,'_ss_series_start_date',$start);
             if ($img_sm) update_post_meta($pid,'_ss_series_image_sm',$img_sm);
             if ($img_lg) update_post_meta($pid,'_ss_series_image_lg',$img_lg);
@@ -224,7 +224,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
             }
 
             $series_map[$se_id]=$pid; $counters['series']++;
-            $log[]="✅ Series: $title";
+            $log[]="Series: $title";
         }
 
         // Build series-to-category map from stm rows: [stm, row_id, series_id, type_id]
@@ -273,7 +273,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
         }
 
         $pid=wp_insert_post(['post_type'=>'ss_sermon','post_title'=>$title,'post_content'=>wp_kses_post($desc),'post_status'=>'publish','post_date'=>$date?$date.' 00:00:00':current_time('mysql')]);
-        if (is_wp_error($pid)) { $log[]="❌ $title"; $counters['errors']++; continue; }
+        if (is_wp_error($pid)) { $log[]="Failed — $title"; $counters['errors']++; continue; }
 
         if ($yt_id) update_post_meta($pid,'_ss_youtube_id',$yt_id);
         if ($date)  update_post_meta($pid,'_ss_sermon_date',$date);
@@ -311,7 +311,7 @@ function ss_rest_import_batch( WP_REST_Request $request ) {
         if ($resources) update_post_meta($pid,'_ss_resources',$resources);
 
         $counters['sermons']++;
-        $log[]='✅ '.$title.($yt_id?" [YT:$yt_id]":'');
+        $log[]=$title.($yt_id?" [YT:$yt_id]":'');
     }
 
     $new_offset = $offset + SS_IMPORT_BATCH_SIZE;
@@ -374,7 +374,7 @@ function sermon_suite_import_page() {
         <div style="margin:20px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <input type="file" id="gcc-import-file" accept=".csv" />
             <button id="gcc-start-import" class="button button-primary">Start Import</button>
-            <button id="gcc-test-connection" class="button">🔌 Test Connection</button>
+            <button id="gcc-test-connection" class="button">Test Connection</button>
             <span id="gcc-ping-result" style="font-size:0.85rem;font-style:italic;"></span>
         </div>
 
@@ -422,19 +422,19 @@ function sermon_suite_import_page() {
                 headers: restHeaders(),
                 timeout: 15000,
                 success: function(res){
-                    $('#gcc-test-connection').prop('disabled',false).text('🔌 Test Connection');
+                    $('#gcc-test-connection').prop('disabled',false).text('Test Connection');
                     $('#gcc-ping-result').html(
-                        '✅ Connected &nbsp;·&nbsp; upload_max: <strong>'+res.upload_max+'</strong>' +
+                        'Connected &nbsp;·&nbsp; upload_max: <strong>'+res.upload_max+'</strong>' +
                         ' &nbsp;·&nbsp; post_max: <strong>'+res.post_max+'</strong>' +
                         ' &nbsp;·&nbsp; PHP '+res.php_version
                     ).css('color','#155724');
                 },
                 error: function(xhr, status){
-                    $('#gcc-test-connection').prop('disabled',false).text('🔌 Test Connection');
+                    $('#gcc-test-connection').prop('disabled',false).text('Test Connection');
                     var msg = status==='timeout'
                         ? 'Timed out — REST API may be disabled.'
                         : 'HTTP '+xhr.status+' — '+xhr.responseText.substring(0,200);
-                    $('#gcc-ping-result').text('❌ '+msg).css('color','#991b1b');
+                    $('#gcc-ping-result').text(msg).css('color','#991b1b');
                 }
             });
         });
@@ -442,7 +442,7 @@ function sermon_suite_import_page() {
         // ── Start Import ────────────────────────────────────────────────
         $('#gcc-start-import').on('click', function(){
             var file = document.getElementById('gcc-import-file').files[0];
-            if (!file) { alert('Please select a CSV file first.'); return; }
+            if (!file) { ssFieldError($('#gcc-import-file'), 'Choose a CSV file first.'); return; }
 
             allLog=[]; grandCounters={series:0,sermons:0,topics:0,speakers:0,skipped:0,errors:0};
             $('#gcc-progress-bar').css('width','0');
@@ -539,7 +539,7 @@ function sermon_suite_import_page() {
         function showResults(dryRun) {
             $('#gcc-start-import').prop('disabled',false);
             $('#gcc-import-results').show();
-            $('#gcc-import-headline').text(dryRun ? '✅ Dry run complete' : '✅ Import complete!');
+            $('#gcc-import-headline').text(dryRun ? 'Dry run complete' : 'Import complete!');
             var s = grandCounters.series+' series, '+grandCounters.sermons+' sermons, '+
                     grandCounters.topics+' topics, '+grandCounters.speakers+' speakers. '+
                     grandCounters.skipped+' skipped. '+grandCounters.errors+' errors.';
@@ -556,7 +556,7 @@ function sermon_suite_import_page() {
             $('#gcc-start-import').prop('disabled',false);
             $('#gcc-import-progress').hide();
             $('#gcc-import-results').show();
-            $('#gcc-import-headline').text('⚠️ Import error');
+            $('#gcc-import-headline').text('Import error');
             $('#gcc-import-summary').html('<span style="color:#991b1b;">'+msg+'</span>');
         }
     });

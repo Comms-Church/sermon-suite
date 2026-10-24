@@ -197,7 +197,7 @@ function ss_sc_sermon_archive( $atts ) {
                         <?php if ($thumb) : ?>
                         <div class="gcc-sermon-row-thumb">
                             <img src="<?php echo esc_url($thumb); ?>" alt="" loading="lazy" />
-                            <span class="gcc-sermon-row-play">▶</span>
+                            <span class="gcc-sermon-row-play"><?php echo ss_icon( 'play', 18 ); ?></span>
                         </div>
                         <?php endif; ?>
                         <div class="gcc-sermon-row-info">
@@ -205,16 +205,16 @@ function ss_sc_sermon_archive( $atts ) {
                             <span class="gcc-sermon-row-meta">
                                 <?php if ($speakers) echo esc_html($speakers) . ' · '; ?>
                                 <?php if ($s_date)   echo esc_html($s_date); ?>
-                                <?php if ($scr)      echo ' · 📖 ' . esc_html($scr); ?>
+                                <?php if ($scr)      echo ' · ' . ss_icon( 'book', 12 ) . ' ' . esc_html($scr); ?>
                             </span>
                         </div>
-                        <span class="gcc-sermon-row-arrow">→</span>
+                        <span class="gcc-sermon-row-arrow"><?php echo ss_icon( 'arrow-right' ); ?></span>
                     </a>
                     <?php endforeach; ?>
 
                     <?php if ($total > $sps) : ?>
                     <a href="<?php echo esc_url(get_permalink($series->ID)); ?>" class="gcc-series-view-all">
-                        View all <?php echo $total; ?> messages in this series →
+                        View all <?php echo $total; ?> messages in this series <?php echo ss_icon( 'arrow-right', 12 ); ?>
                     </a>
                     <?php endif; ?>
                 </div>
@@ -318,6 +318,7 @@ function ss_sc_sermon_player( $atts ) {
         <?php if ($youtube_id) : ?>
         <div class="gcc-video-wrap">
             <iframe src="https://www.youtube.com/embed/<?php echo esc_attr($youtube_id); ?>?rel=0"
+                    title="<?php echo esc_attr( get_the_title($id) ); ?> — video"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen loading="lazy"></iframe>
@@ -330,10 +331,10 @@ function ss_sc_sermon_player( $atts ) {
         <div class="gcc-sermon-scripture">
             <?php if ($scrip_url) : ?>
                 <a href="<?php echo esc_url($scrip_url); ?>" target="_blank" rel="noopener" class="gcc-scripture-link">
-                    📖 <?php echo esc_html($scripture); ?>
+                    <?php echo ss_icon( 'book' ); ?> <?php echo esc_html($scripture); ?>
                 </a>
             <?php else : ?>
-                <span class="gcc-scripture-text">📖 <?php echo esc_html($scripture); ?></span>
+                <span class="gcc-scripture-text"><?php echo ss_icon( 'book' ); ?> <?php echo esc_html($scripture); ?></span>
             <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -528,8 +529,8 @@ function ss_sc_message_list( $atts ) {
                 'format'    => '?paged=%#%',
                 'current'   => $paged,
                 'total'     => $query->max_num_pages,
-                'prev_text' => '← Previous',
-                'next_text' => 'Next →',
+                'prev_text' => ss_icon( 'arrow-left' ) . ' Previous',
+                'next_text' => 'Next ' . ss_icon( 'arrow-right' ),
             ]);
             echo '</div>';
         endif; ?>
@@ -608,11 +609,12 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
     ?>
     <div class="gcc-sermon-card gcc-card-<?php echo esc_attr($style); ?>">
         <?php if ($thumb) : ?>
-        <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-card-thumb-wrap">
+        <?php /* Same destination as the title link: keep it out of the tab order. */ ?>
+        <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-card-thumb-wrap" tabindex="-1" aria-hidden="true">
             <img src="<?php echo esc_url($thumb); ?>"
-                 alt="<?php the_title_attribute(['post' => $sermon_id]); ?>"
+                 alt=""
                  class="gcc-card-thumb" loading="lazy" />
-            <span class="gcc-play-btn" aria-label="Watch sermon">▶</span>
+            <span class="gcc-play-btn"><?php echo ss_icon( 'play', 40 ); ?></span>
         </a>
         <?php endif; ?>
         <div class="gcc-card-body">
@@ -634,10 +636,10 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
             <div class="gcc-card-scripture">
                 <?php if ($scrip_url) : ?>
                     <a href="<?php echo esc_url($scrip_url); ?>" target="_blank" rel="noopener" class="gcc-scripture-inline">
-                        📖 <?php echo esc_html($scripture); ?>
+                        <?php echo ss_icon( 'book' ); ?> <?php echo esc_html($scripture); ?>
                     </a>
                 <?php else : ?>
-                    <span>📖 <?php echo esc_html($scripture); ?></span>
+                    <span><?php echo ss_icon( 'book' ); ?> <?php echo esc_html($scripture); ?></span>
                 <?php endif; ?>
             </div>
             <?php endif; ?>
@@ -659,7 +661,8 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
-            <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-watch-btn">Watch</a>
+            <?php /* Same destination as the title link: keep it out of the tab order too. */ ?>
+            <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-watch-btn" tabindex="-1" aria-hidden="true">Watch</a>
         </div>
     </div>
     <?php
@@ -725,7 +728,7 @@ function ss_sc_latest_hero( $atts ) {
                 <div class="gcc-hero-meta">
                     <?php if (!empty($speakers)) echo '<span>' . esc_html(implode(', ', $speakers)) . '</span>'; ?>
                     <?php if ($date) echo '<span>' . esc_html($date) . '</span>'; ?>
-                    <?php if ($scripture) echo '<span>📖 ' . esc_html($scripture) . '</span>'; ?>
+                    <?php if ($scripture) echo '<span>' . ss_icon( 'book' ) . ' ' . esc_html($scripture) . '</span>'; ?>
                 </div>
 
                 <?php if ($desc) : ?>
@@ -734,7 +737,7 @@ function ss_sc_latest_hero( $atts ) {
 
                 <div class="gcc-hero-actions">
                     <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-hero-watch-btn">
-                        ▶ Watch Now
+                        <?php echo ss_icon( 'play', 12 ); ?> Watch Now
                     </a>
                     <?php foreach ( array_slice($resources, 0, 2) as $r ) : ?>
                     <a href="<?php echo esc_url($r['url']); ?>" class="gcc-hero-resource-btn"

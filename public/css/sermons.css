@@ -13,11 +13,18 @@
     --gcc-accent:      #2563eb;   /* navy — swap for GCC brand color */
     --gcc-accent-light:#eff6ff;
     --gcc-play-bg:     rgba(0,0,0,0.55);
-    --gcc-radius:      8px;
+    /* Radius scale — every corner in this file maps onto one of these. */
     --gcc-radius-sm:   4px;
+    --gcc-radius-md:   6px;
+    --gcc-radius:      8px;
+    --gcc-radius-lg:   12px;
+    --gcc-radius-pill: 999px;
     --gcc-shadow:      0 2px 12px rgba(0,0,0,0.10);
     --gcc-font:        inherit;
     --gcc-transition:  0.2s ease;
+    /* Named properties only — never `all`, which also tweens layout. */
+    --gcc-transitions: background-color var(--gcc-transition), border-color var(--gcc-transition),
+                       color var(--gcc-transition), opacity var(--gcc-transition), transform var(--gcc-transition);
 }
 
 /* ── Layout wrappers ──────────────────────────────────────────────────── */
@@ -47,17 +54,24 @@
     gap: 8px;
 }
 .gcc-tag {
-    display: inline-block;
-    padding: 5px 14px;
-    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box; /* min-height is the chip's full height, whatever the theme's sizing */
+    min-height: 2.25rem;
+    padding: 6px 16px;
+    border-radius: var(--gcc-radius-pill);
     border: 1.5px solid var(--gcc-border);
     font-size: calc(var(--gcc-fs, 17px) * 0.85);
     color: var(--gcc-text);
     text-decoration: none;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
     background: var(--gcc-surface);
 }
-.gcc-tag:hover,
+.gcc-tag:hover {
+    border-color: var(--gcc-accent);
+    color: var(--gcc-accent);
+    text-decoration: none;
+}
 .gcc-tag.active {
     background: var(--gcc-accent);
     border-color: var(--gcc-accent);
@@ -183,10 +197,11 @@
     padding: 14px 16px 16px;
 }
 .gcc-card-title {
-    font-size: calc(var(--gcc-fs, 17px) * 1.4);
+    font-size: calc(var(--gcc-fs, 17px) * 1.1);
     font-weight: 700;
     margin: 0 0 6px;
-    line-height: 1.3;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
 }
 .gcc-card-title a { color: var(--gcc-text); text-decoration: none; }
 .gcc-card-title a:hover { color: var(--gcc-accent); }
@@ -199,7 +214,7 @@
     flex-wrap: wrap;
 }
 .gcc-card-desc {
-    font-size: calc(var(--gcc-fs, 17px) * 1.08);
+    font-size: calc(var(--gcc-fs, 17px) * 0.95);
     color: var(--gcc-text);
     line-height: 1.65;
     margin: 0 0 10px;
@@ -221,21 +236,21 @@
     gap: 4px;
     margin-bottom: 10px;
 }
-.gcc-topic-badge {
+.gcc-topic-badge,
+.gcc-topic-badge-light {
     font-size: calc(var(--gcc-fs, 17px) * 0.72);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 3px 9px;
-    border-radius: 12px;
+    border-radius: var(--gcc-radius-lg);
     background: var(--gcc-accent-light);
     color: var(--gcc-accent);
     text-decoration: none;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
 }
 .gcc-topic-badge:hover { background: var(--gcc-accent); color: var(--gcc-button-text); }
 .gcc-topic-badge-light {
-    composes: gcc-topic-badge;
     background: rgba(255,255,255,0.2);
     color: #fff;
 }
@@ -245,8 +260,7 @@
     gap: 6px;
     margin-bottom: 12px;
 }
-.gcc-resource-link,
-.gcc-resource-item {
+.gcc-resource-link {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -257,10 +271,9 @@
     border: 1px solid var(--gcc-border);
     border-radius: var(--gcc-radius-sm);
     padding: 3px 9px;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
 }
-.gcc-resource-link:hover,
-.gcc-resource-item:hover {
+.gcc-resource-link:hover {
     border-color: var(--gcc-accent);
     color: var(--gcc-accent);
 }
@@ -271,9 +284,9 @@
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
     padding: 8px 20px;
-    border-radius: 20px;
+    border-radius: var(--gcc-radius-pill);
     text-decoration: none !important;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
 }
 .gcc-watch-btn:hover { opacity: 0.88; }
 
@@ -412,14 +425,14 @@
     align-items: center;
     gap: 7px;
     padding: 9px 18px;
-    border-radius: 24px;
+    border-radius: var(--gcc-radius-pill);
     border: 1.5px solid var(--gcc-border);
     font-size: calc(var(--gcc-fs, 17px) * 0.88);
     font-weight: 600;
     color: var(--gcc-text);
     text-decoration: none;
     background: var(--gcc-surface);
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
 }
 .gcc-resource-item:hover {
     background: var(--gcc-accent);
@@ -465,7 +478,7 @@
 }
 .gcc-series-hero-overlay {
     width: 100%;
-    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.1) 100%);
     padding: 48px 0 36px;
 }
 .gcc-series-hero-content {
@@ -493,7 +506,7 @@
     display: flex;
     gap: 16px;
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
-    opacity: 0.85;
+    color: rgba(255,255,255,0.92);
     margin-bottom: 12px;
 }
 .gcc-series-hero-topics {
@@ -509,6 +522,13 @@
     padding-bottom: 10px;
     border-bottom: 2px solid var(--gcc-accent);
 }
+
+/* Large display type reads loose at default tracking — tighten it. */
+.gcc-sermon-title,
+.gcc-series-hero-content h1,
+.gcc-hero-title,
+.ss-sermon-title,
+.ss-tax-title { letter-spacing: -0.02em; }
 
 /* ── Responsive tweaks ────────────────────────────────────────────────── */
 @media (max-width: 600px) {
@@ -556,7 +576,7 @@
 }
 .gcc-hero-overlay {
     width: 100%;
-    background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.15) 100%);
     padding: 48px 0 36px;
 }
 .gcc-hero-inner {
@@ -573,13 +593,13 @@
     background: var(--gcc-accent);
     color: var(--gcc-button-text, #fff);
     padding: 4px 12px;
-    border-radius: 3px;
+    border-radius: var(--gcc-radius-sm);
     margin-bottom: 10px;
 }
 .gcc-hero-series {
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
-    opacity: 0.8;
+    color: rgba(255,255,255,0.92);
     margin-bottom: 6px;
 }
 .gcc-hero-series a { color: #fff; text-decoration: none; }
@@ -597,12 +617,12 @@
     flex-wrap: wrap;
     gap: 12px;
     font-size: calc(var(--gcc-fs, 17px) * 0.85);
-    opacity: 0.8;
+    color: rgba(255,255,255,0.92);
     margin-bottom: 12px;
 }
 .gcc-hero-desc {
     font-size: calc(var(--gcc-fs, 17px) * 0.95);
-    opacity: 0.85;
+    color: rgba(255,255,255,0.92);
     line-height: 1.6;
     margin: 0 0 20px;
     max-width: 580px;
@@ -620,9 +640,9 @@
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 700;
     padding: 11px 26px;
-    border-radius: 24px;
+    border-radius: var(--gcc-radius-pill);
     text-decoration: none !important;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
     letter-spacing: 0.02em;
 }
 .gcc-hero-watch-btn:hover { opacity: 0.88; }
@@ -633,11 +653,11 @@
     font-size: calc(var(--gcc-fs, 17px) * 0.82);
     font-weight: 600;
     padding: 9px 18px;
-    border-radius: 24px;
+    border-radius: var(--gcc-radius-pill);
     border: 1.5px solid rgba(255,255,255,0.5);
     color: #fff !important;
     text-decoration: none !important;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
     background: rgba(255,255,255,0.12);
 }
 .gcc-hero-resource-btn:hover {
@@ -674,7 +694,7 @@
     text-align: left;
     transition: background var(--gcc-transition);
 }
-.gcc-notes-toggle:hover { background: #ebebeb; }
+.gcc-notes-toggle:hover { background: color-mix(in srgb, var(--gcc-bg-alt) 92%, var(--gcc-text)); }
 .gcc-notes-arrow {
     font-size: calc(var(--gcc-fs, 17px) * 0.7);
     transition: transform 0.2s;
@@ -696,33 +716,12 @@
 }
 .gcc-notes-body p { margin: 0 0 10px; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   RELATED SERMONS
-   ═══════════════════════════════════════════════════════════════════ */
-.gcc-related-sermons {
-    margin-top: 48px;
-    padding-top: 32px;
-    border-top: 2px solid var(--gcc-border);
-}
-.gcc-related-block { margin-bottom: 40px; }
-.gcc-related-heading {
-    font-size: calc(var(--gcc-fs, 17px) * 1.1);
-    font-weight: 700;
-    margin: 0 0 18px;
-    color: var(--gcc-text);
-}
-.gcc-related-heading a {
-    color: var(--gcc-accent);
-    text-decoration: none;
-}
-.gcc-related-heading a:hover { text-decoration: underline; }
-
 /* ── Series card improvements ─────────────────────────────────── */
 .gcc-series-card { position: relative; }
-.gcc-series-card-img { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #1a1a2e; }
+.gcc-series-card-img { position: relative; aspect-ratio: 16/9; overflow: hidden; background: color-mix(in srgb, var(--gcc-accent) 25%, #000); }
 .gcc-series-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
 .gcc-series-card:hover .gcc-series-card-img img { transform: scale(1.03); }
-.gcc-series-card-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #2563eb 0%, #2d6a9f 100%); }
+.gcc-series-card-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, var(--gcc-accent) 0%, color-mix(in srgb, var(--gcc-accent) 70%, #000) 100%); }
 .gcc-series-card-badge {
     position: absolute;
     top: 10px; left: 10px;
@@ -733,7 +732,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 3px 8px;
-    border-radius: 3px;
+    border-radius: var(--gcc-radius-sm);
 }
 .gcc-series-card-desc {
     font-size: calc(var(--gcc-fs, 17px) * 1);
@@ -797,7 +796,7 @@
     background: var(--gcc-accent);
     color: var(--gcc-button-text, #fff);
     padding: 2px 8px;
-    border-radius: 3px;
+    border-radius: var(--gcc-radius-sm);
     margin-bottom: 8px;
 }
 .gcc-series-block-title {
@@ -860,7 +859,7 @@
     position: relative;
     flex-shrink: 0;
     width: 96px;
-    border-radius: 4px;
+    border-radius: var(--gcc-radius-sm);
     overflow: hidden;
     aspect-ratio: 16/9;
     background: #000;
@@ -925,7 +924,7 @@
     text-align: center;
     transition: background var(--gcc-transition);
 }
-.gcc-series-view-all:hover { background: #dce8f5; text-decoration: none; }
+.gcc-series-view-all:hover { background: color-mix(in srgb, var(--gcc-accent) 15%, var(--gcc-bg)); text-decoration: none; }
 
 @media (max-width: 640px) {
     .gcc-series-block-header { flex-direction: column; }
@@ -976,8 +975,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    height: 36px;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: 44px;
+    height: 44px;
     padding: 0 12px;
     border: 1px solid var(--gcc-border);
     border-radius: var(--gcc-radius-sm);
@@ -986,7 +987,7 @@
     color: var(--gcc-text);
     text-decoration: none;
     background: var(--gcc-surface);
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
 }
 .ss-pagination .page-numbers:hover { border-color: var(--gcc-accent); color: var(--gcc-accent); }
 .ss-pagination .page-numbers.current {
@@ -1050,7 +1051,7 @@
     padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: var(--gcc-radius-lg);
     background: #000;
     margin-bottom: 20px;
 }
@@ -1067,7 +1068,7 @@
 .ss-spotify-wrap,
 .gcc-spotify-wrap {
     margin-bottom: 20px;
-    border-radius: 12px;
+    border-radius: var(--gcc-radius-lg);
     overflow: hidden;
     line-height: 0;
 }
@@ -1077,7 +1078,7 @@
     width: 100%;
     height: 152px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--gcc-radius-lg);
 }
 
 /* Title + byline */
@@ -1131,7 +1132,7 @@
     color: var(--gcc-text);
     transition: background var(--gcc-transition);
 }
-.ss-notes-toggle:hover { background: #ebebeb; }
+.ss-notes-toggle:hover { background: color-mix(in srgb, var(--gcc-bg-alt) 92%, var(--gcc-text)); }
 .ss-notes-toggle-label {
     display: flex;
     align-items: center;
@@ -1215,7 +1216,7 @@
     padding: 12px 18px;
     border-left: 3px solid var(--gcc-accent);
     background: var(--gcc-accent-light);
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--gcc-radius-md) var(--gcc-radius-md) 0;
     font-size: calc(var(--gcc-fs, 17px) * 1.02);
 }
 .ss-notes-body blockquote p { margin: 0; }
@@ -1224,7 +1225,7 @@
 .ss-notes-body code {
     background: var(--gcc-bg-alt);
     padding: 1px 5px;
-    border-radius: 4px;
+    border-radius: var(--gcc-radius-sm);
     font-size: .92em;
 }
 .ss-notes-body hr {
@@ -1315,7 +1316,7 @@
     padding: 10px 12px;
     background: var(--gcc-accent-light);
     border-left: 3px solid var(--gcc-accent);
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--gcc-radius-md) var(--gcc-radius-md) 0;
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 700;
     color: var(--gcc-accent);
@@ -1346,7 +1347,7 @@
 .ss-resource-icon {
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: var(--gcc-radius-md);
     background: var(--gcc-bg-alt);
     border: 1px solid var(--gcc-border);
     display: flex;
@@ -1389,11 +1390,11 @@
     font-size: calc(var(--gcc-fs, 17px) * 0.75);
     font-weight: 600;
     padding: 4px 10px;
-    border-radius: 20px;
+    border-radius: var(--gcc-radius-pill);
     background: var(--gcc-accent-light);
     color: var(--gcc-accent);
     text-decoration: none;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
     border: 1px solid transparent;
 }
 .ss-topic-chip:hover {
@@ -1408,7 +1409,7 @@
     width: 100%;
     aspect-ratio: 16/9;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: var(--gcc-radius-md);
     display: block;
     transition: opacity var(--gcc-transition);
 }
@@ -1436,7 +1437,7 @@
     font-weight: 600;
     color: var(--gcc-text);
     text-decoration: none;
-    transition: var(--gcc-transition);
+    transition: var(--gcc-transitions);
     background: var(--gcc-bg-alt);
 }
 .ss-view-series-btn:hover {
@@ -1530,7 +1531,7 @@
     justify-content: center;
     background: var(--gcc-accent-light);
     color: var(--gcc-accent);
-    border-radius: 13px;
+    border-radius: var(--gcc-radius-pill);
     font-size: calc(var(--gcc-fs, 17px) * 0.78);
     font-weight: 700;
 }
@@ -1615,7 +1616,7 @@
     width: 160px;
     aspect-ratio: 16/9;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: var(--gcc-radius-md);
     flex-shrink: 0;
 }
 .ss-tax-series-info {
@@ -1641,4 +1642,75 @@
 .ss-transcript-body {
     max-height: 420px;
     overflow-y: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOCUS, PRESS & USER PREFERENCES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Keyboard focus — many themes strip the default outline. */
+.gcc-archive-wrap :is(a, button):focus-visible,
+.ss-message-list-wrap :is(a, button):focus-visible,
+.ss-sermon-page :is(a, button):focus-visible,
+.ss-tax-page :is(a, button):focus-visible,
+.gcc-series-grid :is(a, button):focus-visible,
+:is(.gcc-sermon-card, .gcc-series-card, .gcc-hero-wrap, .gcc-single-wrap, .ss-topics-directory) :is(a, button):focus-visible {
+    outline: 2px solid var(--gcc-accent);
+    outline-offset: 2px;
+}
+/* Inline SVG icons (ss_icon()) sit on the text's centre line, not its baseline. */
+.ss-icon { display: inline-block; vertical-align: -0.125em; flex-shrink: 0; }
+
+/* Hover-only reveals also show for keyboard focus. */
+.gcc-card-thumb-wrap:focus-visible .gcc-play-btn,
+.gcc-sermon-row-item:focus-visible .gcc-sermon-row-play { opacity: 1; }
+
+/* Feedback on press, not on release. */
+:is(.gcc-tag, .ss-topic-chip, .gcc-topic-badge, .gcc-watch-btn, .gcc-hero-watch-btn,
+    .gcc-hero-resource-btn, .gcc-resource-item, .ss-view-series-btn,
+    .ss-pagination .page-numbers, .ss-nav-card):active {
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gcc-sermon-card:hover,
+    .gcc-series-card:hover,
+    .ss-topic-tile:hover,
+    .gcc-series-card:hover .gcc-series-card-img img,
+    .gcc-sermon-row-item:hover .gcc-sermon-row-arrow { transform: none; }
+    .ss-notes-chevron,
+    .gcc-notes-arrow { transition: none; }
+}
+
+@media (prefers-contrast: more) {
+    .gcc-sermon-card,
+    .gcc-series-card { box-shadow: none; border: 1px solid var(--gcc-text); }
+    .gcc-hero-overlay,
+    .gcc-series-hero-overlay { background: rgba(0,0,0,0.85); }
+    .gcc-hero-meta,
+    .gcc-hero-series,
+    .gcc-hero-desc,
+    .gcc-series-hero-meta { opacity: 1; }
+}
+
+/* Small chips keep their size but get a finger-sized hit area. */
+.gcc-topic-badge,
+.ss-topic-chip { position: relative; }
+.gcc-topic-badge::after,
+.ss-topic-chip::after { content: ""; position: absolute; inset: -8px -2px; }
+
+/* Notes / guide / transcript open and close where the toggle is, rather than
+   snapping. sermons.js adds .is-closing and sets [hidden] when it ends. */
+.ss-notes-body:not([hidden]),
+.gcc-notes-body:not([hidden]) { animation: ss-notes-in 200ms ease-out; }
+.ss-notes-body.is-closing,
+.gcc-notes-body.is-closing { animation: ss-notes-out 150ms ease-in forwards; }
+@keyframes ss-notes-in  { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes ss-notes-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+    .ss-notes-body:not([hidden]),
+    .gcc-notes-body:not([hidden]),
+    .ss-notes-body.is-closing,
+    .gcc-notes-body.is-closing { animation: none; }
 }

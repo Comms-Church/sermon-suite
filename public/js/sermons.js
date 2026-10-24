@@ -10,21 +10,17 @@
         var expanded = $btn.attr('aria-expanded') === 'true';
         $btn.attr('aria-expanded', String(!expanded));
         var $body = $btn.next('.gcc-notes-body, .ss-notes-body');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (expanded) {
-            $body.attr('hidden', '');
+            // Play the close animation, then hide. Reduced motion has no
+            // animation (so no animationend) — hide straight away.
+            if (reduce) { $body.attr('hidden', ''); return; }
+            $body.addClass('is-closing').one('animationend', function() {
+                $body.removeClass('is-closing').attr('hidden', '');
+            });
         } else {
-            $body.removeAttr('hidden');
+            $body.removeClass('is-closing').off('animationend').removeAttr('hidden');
         }
     });
-
-    // ── Filter tag active state ───────────────────────────────────────────────
-    var params     = new URLSearchParams(window.location.search);
-    var activeTopic = params.get('topic');
-    if (activeTopic) {
-        $('.gcc-tag').each(function() {
-            var href = $(this).attr('href') || '';
-            $(this).toggleClass('active', href.indexOf('topic=' + activeTopic) !== -1);
-        });
-    }
 
 })(jQuery);
