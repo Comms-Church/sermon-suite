@@ -214,7 +214,7 @@ function ss_sc_sermon_archive( $atts ) {
 
                     <?php if ($total > $sps) : ?>
                     <a href="<?php echo esc_url(get_permalink($series->ID)); ?>" class="gcc-series-view-all">
-                        View all <?php echo $total; ?> messages in this series <span aria-hidden="true">→</span>
+                        View all <?php echo $total; ?> messages in this series <?php echo ss_icon( 'arrow-right', 12 ); ?>
                     </a>
                     <?php endif; ?>
                 </div>
@@ -529,8 +529,8 @@ function ss_sc_message_list( $atts ) {
                 'format'    => '?paged=%#%',
                 'current'   => $paged,
                 'total'     => $query->max_num_pages,
-                'prev_text' => '<span aria-hidden="true">←</span> Previous',
-                'next_text' => 'Next <span aria-hidden="true">→</span>',
+                'prev_text' => ss_icon( 'arrow-left' ) . ' Previous',
+                'next_text' => 'Next ' . ss_icon( 'arrow-right' ),
             ]);
             echo '</div>';
         endif; ?>
@@ -661,7 +661,8 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
-            <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-watch-btn">Watch</a>
+            <?php /* Same destination as the title link: keep it out of the tab order too. */ ?>
+            <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-watch-btn" tabindex="-1" aria-hidden="true">Watch</a>
         </div>
     </div>
     <?php

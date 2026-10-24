@@ -18,7 +18,7 @@ while ( have_posts() ) : the_post();
         <div class="gcc-series-hero" <?php if ($img_lg) echo 'style="background-image:url(' . esc_url($img_lg) . ')"'; ?>>
             <div class="gcc-series-hero-overlay">
                 <div class="gcc-series-hero-content">
-                    <a href="<?php echo esc_url( sermon_suite_archive_url() ); ?>" class="gcc-back-link-hero"><span aria-hidden="true">←</span> All Series</a>
+                    <a href="<?php echo esc_url( sermon_suite_archive_url() ); ?>" class="gcc-back-link-hero"><?php echo ss_icon( 'arrow-left', 12 ); ?> All Series</a>
                     <h1><?php the_title(); ?></h1>
                     <div class="gcc-series-hero-meta">
                         <?php if ($start) echo '<span>' . ss_format_sermon_date($start) . ($end ? ' – ' . ss_format_sermon_date($end) : '') . '</span>'; ?>
