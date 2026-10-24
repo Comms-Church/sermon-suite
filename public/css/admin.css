@@ -1,3 +1,6 @@
+/* Follows the WordPress admin color scheme where one is set. */
+:root { --ss-admin-accent: var(--wp-admin-theme-color, #2563eb); }
+
 /* ═══════════════════════════════════════════════════════════════
    Sermon Suite — Admin Styles
    ═══════════════════════════════════════════════════════════════ */
@@ -56,9 +59,9 @@
     border: 1px solid #ddd;
     background: #fff;
     white-space: nowrap;
-    transition: all 0.15s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.gcc-back-btn:hover { color: #2563eb; border-color: #2563eb; background: #f0f4f9; }
+.gcc-back-btn:hover { color: var(--ss-admin-accent); border-color: var(--ss-admin-accent); background: #f0f4f9; }
 .gcc-status-select {
     height: 34px; padding: 0 10px; border: 1px solid #ccc;
     border-radius: 5px; font-size: 0.85rem; background: #fff; color: #333;
@@ -66,12 +69,12 @@
 .gcc-view-btn {
     display: inline-flex; align-items: center; height: 34px; padding: 0 14px;
     border: 1px solid #ccc; border-radius: 5px; font-size: 0.85rem;
-    color: #333; text-decoration: none; background: #fff; transition: all 0.15s;
+    color: #333; text-decoration: none; background: #fff; transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .gcc-view-btn:hover { border-color: #999; color: #1a1a1a; }
 .gcc-primary-btn {
     display: inline-flex; align-items: center; height: 34px; padding: 0 20px;
-    background: #2563eb; color: #fff !important; border: none; border-radius: 5px;
+    background: var(--ss-admin-accent); color: #fff !important; border: none; border-radius: 5px;
     font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
     text-decoration: none;
 }
@@ -219,8 +222,8 @@
     -webkit-appearance: none;
 }
 .gcc-input:focus, .gcc-select:focus, .gcc-textarea:focus {
-    border-color: #2563eb; outline: none;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.35);
+    border-color: var(--ss-admin-accent); outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ss-admin-accent) 35%, transparent);
 }
 .gcc-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -251,10 +254,10 @@
 .gcc-apply-btn {
     display: flex; align-items: center; justify-content: center; gap: 5px;
     padding: 7px 12px; background: #f0f4f9; border: 1px solid #c8d8e8;
-    border-radius: 5px; color: #2563eb; font-size: 0.8rem; font-weight: 700;
-    cursor: pointer; transition: all 0.15s; width: 100%;
+    border-radius: 5px; color: var(--ss-admin-accent); font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; width: 100%;
 }
-.gcc-apply-btn:hover { background: #dce8f5; border-color: #2563eb; }
+.gcc-apply-btn:hover { background: #dce8f5; border-color: var(--ss-admin-accent); }
 .gcc-apply-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* ── Tag chip suggestions ─────────────────────────────────────── */
@@ -262,9 +265,9 @@
 .gcc-chip {
     display: inline-block; font-size: 0.7rem; padding: 2px 8px;
     background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px;
-    cursor: pointer; color: #444; transition: all 0.12s; user-select: none;
+    cursor: pointer; color: #444; transition: background-color 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s; user-select: none;
 }
-.gcc-chip:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+.gcc-chip:hover { background: var(--ss-admin-accent); color: #fff; border-color: var(--ss-admin-accent); }
 
 /* ── Resource rows ────────────────────────────────────────────── */
 .gcc-resource-row {
@@ -274,27 +277,27 @@
 .gcc-resource-row .gcc-select { width: 110px; flex-shrink: 0; }
 .gcc-remove-btn {
     background: none; border: 1px solid #e5e7eb; border-radius: 4px;
-    width: 28px; height: 28px; display: flex; align-items: center;
+    width: 32px; height: 32px; display: flex; align-items: center;
     justify-content: center; cursor: pointer; color: #aaa; font-size: 0.75rem;
-    flex-shrink: 0; transition: all 0.12s; padding: 0;
+    flex-shrink: 0; transition: background-color 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s; padding: 0;
 }
 .gcc-remove-btn:hover { color: #e53e3e; border-color: #e53e3e; background: #fff5f5; }
 .gcc-add-row-btn {
     display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
     background: none; border: 1.5px dashed #d1d5db; border-radius: 5px;
     color: #777; font-size: 0.78rem; font-weight: 600; cursor: pointer;
-    transition: all 0.15s; margin-top: 3px;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; margin-top: 3px;
 }
-.gcc-add-row-btn:hover { border-color: #2563eb; color: #2563eb; }
+.gcc-add-row-btn:hover { border-color: var(--ss-admin-accent); color: var(--ss-admin-accent); }
 
 /* ── Link button ──────────────────────────────────────────────── */
 .gcc-link-btn {
     display: inline-flex; align-items: center; padding: 7px 10px;
     background: #f8f9fa; border: 1px solid #d1d5db; border-radius: 5px;
     cursor: pointer; font-size: 0.85rem; color: #555; flex-shrink: 0;
-    transition: all 0.12s;
+    transition: background-color 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
 }
-.gcc-link-btn:hover { border-color: #2563eb; color: #2563eb; background: #f0f4f9; }
+.gcc-link-btn:hover { border-color: var(--ss-admin-accent); color: var(--ss-admin-accent); background: #f0f4f9; }
 
 /* ── YouTube preview ──────────────────────────────────────────── */
 .gcc-yt-preview { margin-top: 10px; border-radius: 5px; overflow: hidden; display: none; }
@@ -303,12 +306,12 @@
 /* ── Image picker wells ───────────────────────────────────────── */
 .gcc-img-well {
     border: 2px dashed #d1d5db; border-radius: 6px; padding: 14px;
-    text-align: center; cursor: pointer; transition: all 0.15s;
+    text-align: center; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
     margin-bottom: 7px; background: #fafafa; min-height: 70px;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 5px;
 }
-.gcc-img-well:hover { border-color: #2563eb; background: #f0f4f9; }
+.gcc-img-well:hover { border-color: var(--ss-admin-accent); background: #f0f4f9; }
 .gcc-img-well img { display: block; width: 100%; border-radius: 4px; }
 .gcc-img-well-empty { color: #aaa; font-size: 0.78rem; }
 .gcc-img-well-empty span { font-size: 1.3rem; display: block; margin-bottom: 3px; }
@@ -329,13 +332,13 @@
     display: block; font-weight: 600; font-size: 0.84rem; color: #1a1a1a;
     text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.gcc-sermon-name:hover { color: #2563eb; }
+.gcc-sermon-name:hover { color: var(--ss-admin-accent); }
 .gcc-sermon-sub { font-size: 0.71rem; color: #999; margin-top: 1px; display: block; }
 .gcc-edit-link {
     font-size: 0.73rem; color: #888; text-decoration: none; padding: 3px 8px;
-    border: 1px solid #e5e7eb; border-radius: 4px; flex-shrink: 0; transition: all 0.12s;
+    border: 1px solid #e5e7eb; border-radius: 4px; flex-shrink: 0; transition: background-color 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
 }
-.gcc-edit-link:hover { color: #2563eb; border-color: #2563eb; background: #f0f4f9; }
+.gcc-edit-link:hover { color: var(--ss-admin-accent); border-color: var(--ss-admin-accent); background: #f0f4f9; }
 .gcc-draft-badge {
     display: inline-block; background: #fef3c7; color: #92400e; font-size: 0.62rem;
     font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; margin-left: 4px;
@@ -349,9 +352,9 @@
 .gcc-sync-btn {
     display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
     background: #fff; border: 1px solid #d1d5db; border-radius: 5px; font-size: 0.8rem;
-    font-weight: 600; cursor: pointer; transition: all 0.15s; flex-shrink: 0; color: #333;
+    font-weight: 600; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; flex-shrink: 0; color: #333;
 }
-.gcc-sync-btn:hover { border-color: #2563eb; color: #2563eb; }
+.gcc-sync-btn:hover { border-color: var(--ss-admin-accent); color: var(--ss-admin-accent); }
 .gcc-sync-log {
     margin-top: 10px; background: #fff; border: 1px solid #e8e8e8; border-radius: 4px;
     padding: 10px 12px; max-height: 160px; overflow-y: auto; font-family: monospace;
@@ -371,7 +374,7 @@
     background: #fff; border: 1px solid #e2e2e2; border-radius: 8px;
     padding: 16px 22px; text-align: center; min-width: 100px;
 }
-.gcc-stat-number { display: block; font-size: 1.9rem; font-weight: 800; color: #2563eb; }
+.gcc-stat-number { display: block; font-size: 1.9rem; font-weight: 800; color: var(--ss-admin-accent); }
 .gcc-stat-label  { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-top: 2px; display: block; }
 .gcc-admin-quick-links { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .gcc-admin-quick-links h2 { width: 100%; margin-bottom: 6px; }
@@ -416,10 +419,10 @@
 .gcc-sc-tab {
     padding: 9px 14px; background: none; border: none; border-bottom: 2px solid transparent;
     margin-bottom: -2px; font-size: 0.8rem; font-weight: 600; color: #666; cursor: pointer;
-    transition: all 0.15s; white-space: nowrap;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; white-space: nowrap;
 }
-.gcc-sc-tab:hover { color: #2563eb; }
-.gcc-sc-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: #fff; }
+.gcc-sc-tab:hover { color: var(--ss-admin-accent); }
+.gcc-sc-tab.active { color: var(--ss-admin-accent); border-bottom-color: var(--ss-admin-accent); background: #fff; }
 .gcc-sc-panel { display: none; padding: 18px 20px; }
 .gcc-sc-panel.active { display: block; }
 .gcc-sc-panel h3 { margin: 0 0 5px; font-size: 0.97rem; }
@@ -484,11 +487,15 @@
     background: #f0f4f9;
     border: 1px solid #c8d8e8;
     border-radius: 5px;
-    color: #2563eb;
+    color: var(--ss-admin-accent);
     font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.12s;
+    transition: background-color 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
     white-space: nowrap;
 }
-.gcc-add-new-btn:hover { background: #dce8f5; border-color: #2563eb; }
+.gcc-add-new-btn:hover { background: #dce8f5; border-color: var(--ss-admin-accent); }
+
+/* Inline validation (replaces alert()). */
+.gcc-field-error { color: #b32d2e; font-size: 0.8rem; font-weight: 600; margin: 4px 0 0; }
+[aria-invalid="true"] { border-color: #b32d2e !important; }

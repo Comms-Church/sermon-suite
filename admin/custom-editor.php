@@ -271,7 +271,7 @@ function ss_render_sermon_editor() {
         </div>
 
         <?php if ($yt_synced): ?>
-        <div class="gcc-editor-notice gcc-notice-info">🔗 Synced from YouTube <code><?php echo esc_html($yt_synced); ?></code>. Your edits here won't be overwritten by future syncs.</div>
+        <div class="gcc-editor-notice gcc-notice-info">Synced from YouTube <code><?php echo esc_html($yt_synced); ?></code>. Your edits here won't be overwritten by future syncs.</div>
         <?php endif; ?>
 
         <div id="gcc-toast" class="gcc-save-feedback" role="status" aria-live="polite" style="display:none;"></div>
@@ -300,7 +300,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Sermon Notes -->
                 <div class="gcc-card">
-                    <div class="gcc-card-header">📝 Sermon Notes / Outline <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — shown as a collapsible section below the video</span></div>
+                    <div class="gcc-card-header">Sermon Notes / Outline <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — shown as a collapsible section below the video</span></div>
                     <div class="gcc-card-body">
                         <textarea id="gcc-notes" class="gcc-textarea" rows="6"
                                   placeholder="Outline, fill-in-the-blank notes, or key points…"><?php echo esc_textarea($notes); ?></textarea>
@@ -309,7 +309,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Discussion Guide -->
                 <div class="gcc-card">
-                    <div class="gcc-card-header">💬 Discussion Guide <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Import from Sermon Shots or write your own.</span></div>
+                    <div class="gcc-card-header">Discussion Guide <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Import from Sermon Shots or write your own.</span></div>
                     <div class="gcc-card-body">
                         <textarea id="gcc-guide" class="gcc-textarea" rows="6"
                                   placeholder="Small-group questions and discussion prompts…"><?php echo esc_textarea($guide); ?></textarea>
@@ -318,7 +318,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Transcript -->
                 <div class="gcc-card">
-                    <div class="gcc-card-header">🗒 Transcript <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Great for accessibility and search.</span></div>
+                    <div class="gcc-card-header">Transcript <span class="gcc-label-hint" style="text-transform:none;font-weight:400;">Optional — collapsible on the sermon page. Great for accessibility and search.</span></div>
                     <div class="gcc-card-body">
                         <textarea id="gcc-transcript" class="gcc-textarea" rows="6"
                                   placeholder="Full sermon transcript…"><?php echo esc_textarea($transcript); ?></textarea>
@@ -327,7 +327,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Resources -->
                 <div class="gcc-card">
-                    <div class="gcc-card-header">📎 Resources & Downloads</div>
+                    <div class="gcc-card-header">Resources & Downloads</div>
                     <div class="gcc-card-body">
                         <div id="gcc-resources-list">
                         <?php foreach ($resources as $r): ?>
@@ -335,12 +335,12 @@ function ss_render_sermon_editor() {
                                 <input type="text" class="gcc-input" name="res_label[]" value="<?php echo esc_attr($r['label']??''); ?>" placeholder="Label (e.g. Discussion Guide)" />
                                 <input type="url"  class="gcc-input" name="res_url[]"   value="<?php echo esc_attr($r['url']??'');   ?>" placeholder="https://…" />
                                 <select name="res_type[]" class="gcc-select">
-                                    <option value="pdf"        <?php selected($r['type']??'','pdf');        ?>>📄 PDF</option>
-                                    <option value="devotional" <?php selected($r['type']??'','devotional'); ?>>📖 Devotional</option>
-                                    <option value="notes"      <?php selected($r['type']??'','notes');      ?>>📝 Notes</option>
-                                    <option value="link"       <?php selected($r['type']??'','link');       ?>>🔗 Link</option>
+                                    <option value="pdf"        <?php selected($r['type']??'','pdf');        ?>>PDF</option>
+                                    <option value="devotional" <?php selected($r['type']??'','devotional'); ?>>Devotional</option>
+                                    <option value="notes"      <?php selected($r['type']??'','notes');      ?>>Notes</option>
+                                    <option value="link"       <?php selected($r['type']??'','link');       ?>>Link</option>
                                 </select>
-                                <button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource">✕</button>
+                                <button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource"><span aria-hidden="true">✕</span></button>
                             </div>
                         <?php endforeach; ?>
                         </div>
@@ -355,7 +355,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Video & Audio -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🎬 Video &amp; Audio</div>
+                    <div class="gcc-sidebar-card-header">Video &amp; Audio</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">YouTube URL or Video ID</label>
@@ -380,7 +380,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Date & Series -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">📅 Date & Series</div>
+                    <div class="gcc-sidebar-card-header">Date & Series</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">Sermon Date</label>
@@ -405,7 +405,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Scripture -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">📖 Scripture</div>
+                    <div class="gcc-sidebar-card-header">Scripture</div>
                     <div class="gcc-sidebar-card-body">
 
                         <div class="gcc-bible-picker">
@@ -449,7 +449,7 @@ function ss_render_sermon_editor() {
                                 <input type="url" id="gcc-scr-url" class="gcc-input"
                                        value="<?php echo esc_attr($scr_url); ?>"
                                        placeholder="Auto-generated or paste…" />
-                                <button type="button" id="gcc-gen-url" class="gcc-link-btn" title="Generate from reference">🔗</button>
+                                <button type="button" id="gcc-gen-url" class="gcc-link-btn" title="Generate from reference" aria-label="Generate Bible Gateway link from reference"><?php echo ss_icon( 'link' ); ?></button>
                             </div>
                         </div>
                     </div>
@@ -457,7 +457,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Speakers & Topics -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🏷 People & Topics</div>
+                    <div class="gcc-sidebar-card-header">People & Topics</div>
                     <div class="gcc-sidebar-card-body">
 
                         <!-- Speaker -->
@@ -526,7 +526,7 @@ function ss_render_sermon_editor() {
                 $current_campus_id = !empty($current_campuses) ? $current_campuses[0] : 0;
                 ?>
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🏛 Campus</div>
+                    <div class="gcc-sidebar-card-header">Campus</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <?php if (!empty($all_campuses)): ?>
@@ -550,7 +550,7 @@ function ss_render_sermon_editor() {
 
                 <!-- Sermon Shots -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">⚡ Sermon Shots</div>
+                    <div class="gcc-sidebar-card-header">Sermon Shots</div>
                     <div class="gcc-sidebar-card-body">
                         <?php if ( ! Sermon_Suite_Shots_API::has_key() ) : ?>
                         <p style="margin:0;font-size:0.8rem;color:#888;">
@@ -700,7 +700,7 @@ function ss_render_sermon_editor() {
             var shotsHeaders = { 'X-WP-Nonce': sermonSuiteAdmin.restNonce };
 
             function ssCopy(text, $btn, label) {
-                var done = function(){ $btn.text('✅ Copied!'); setTimeout(function(){ $btn.text(label); }, 1600); };
+                var done = function(){ $btn.text('Copied'); setTimeout(function(){ $btn.text(label); }, 1600); };
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(done, function(){ window.prompt('Copy this text:', text); });
                 } else {
@@ -712,8 +712,8 @@ function ss_render_sermon_editor() {
                 if (!v) return;
                 var $n = $('#gcc-notes');
                 if (!$n.val().trim() || confirm('Replace the existing Sermon Notes with the Long summary?')) {
-                    $n.val(v);
-                    $('#gcc-shots-status').css('color','#1a7f37').text('✅ Long summary placed in Sermon Notes. Review, then Save.');
+                    $n.val(v); dirty=true;
+                    $('#gcc-shots-status').css('color','#1a7f37').text('Long summary placed in Sermon Notes. Review, then Save.');
                 }
             });
             $('#gcc-shots-copy-yt').on('click', function(){
@@ -777,24 +777,19 @@ function ss_render_sermon_editor() {
                             el.innerHTML = String(html).replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
                             return el.textContent.replace(/\n{3,}/g, '\n\n').trim();
                         };
-                        if (d['summary']) {
-                            var $desc = $('#gcc-content');
-                            if (!$desc.val().trim() || confirm('Replace the existing Description with the Sermon Shots summary?')) {
-                                $desc.val(toText(d['summary'])); filled.push('Description');
-                            } else { skipped.push('Description'); }
-                        }
-                        if (d['discussion-guide']) {
-                            var $g = $('#gcc-guide');
-                            if (!$g.val().trim() || confirm('Replace the existing Discussion Guide?')) {
-                                $g.val(toText(d['discussion-guide'])); filled.push('Discussion Guide');
-                            } else { skipped.push('Discussion Guide'); }
-                        }
-                        if (d['transcription']) {
-                            var $t = $('#gcc-transcript');
-                            if (!$t.val().trim() || confirm('Replace the existing Transcript?')) {
-                                $t.val(toText(d['transcription'])); filled.push('Transcript');
-                            } else { skipped.push('Transcript'); }
-                        }
+                        // Ask once about everything that would be overwritten, not field by field.
+                        var incoming = [
+                            { key: 'summary',          $el: $('#gcc-content'),    label: 'Description' },
+                            { key: 'discussion-guide', $el: $('#gcc-guide'),      label: 'Discussion Guide' },
+                            { key: 'transcription',    $el: $('#gcc-transcript'), label: 'Transcript' }
+                        ].filter(function(f){ return d[f.key]; });
+                        var clashes = incoming.filter(function(f){ return f.$el.val().trim(); });
+                        var replace = !clashes.length || confirm('Replace ' + clashes.map(function(f){ return f.label; }).join(', ') + ' with the Sermon Shots version?');
+                        incoming.forEach(function(f){
+                            if (f.$el.val().trim() && !replace) { skipped.push(f.label); return; }
+                            f.$el.val(toText(d[f.key])); filled.push(f.label);
+                        });
+                        if (filled.length) dirty=true;
                         $('#gcc-shots-video-id').val(vid);
                         // Offer the other summary variants
                         var vars = d.summary_variants || {};
@@ -804,7 +799,7 @@ function ss_render_sermon_editor() {
                         if (vars.youtube)                               { $('#gcc-shots-copy-yt').show();       anyExtra = true; } else { $('#gcc-shots-copy-yt').hide(); }
                         if (vars.socialmediateaser || vars.social)      { $('#gcc-shots-copy-social').show();   anyExtra = true; } else { $('#gcc-shots-copy-social').hide(); }
                         $('#gcc-shots-extras').toggle(anyExtra);
-                        var msg = filled.length ? '✅ Imported: ' + filled.join(', ') + '. Review, then Save.' : 'Nothing imported.';
+                        var msg = filled.length ? 'Imported: ' + filled.join(', ') + '. Review, then Save.' : 'Nothing imported.';
                         if (d._errors) {
                             var errs = Object.keys(d._errors).map(function(k){ return k + ': ' + d._errors[k]; });
                             msg += ' (' + errs.join(' · ') + ')';
@@ -848,8 +843,8 @@ function ss_render_sermon_editor() {
                 '<div class="gcc-resource-row">' +
                 '<input type="text" class="gcc-input" name="res_label[]" placeholder="Label" />' +
                 '<input type="url"  class="gcc-input" name="res_url[]"   placeholder="https://…" />' +
-                '<select name="res_type[]" class="gcc-select"><option value="pdf">📄 PDF</option><option value="devotional">📖 Devotional</option><option value="notes">📝 Notes</option><option value="link">🔗 Link</option></select>' +
-                '<button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource">✕</button>' +
+                '<select name="res_type[]" class="gcc-select" aria-label="Resource type"><option value="pdf">PDF</option><option value="devotional">Devotional</option><option value="notes">Notes</option><option value="link">Link</option></select>' +
+                '<button type="button" class="gcc-remove-btn gcc-remove-resource" aria-label="Remove resource"><span aria-hidden="true">✕</span></button>' +
                 '</div>'
             );
         });
@@ -969,11 +964,11 @@ function ss_render_series_editor() {
                 <!-- YouTube Sync (only on edit) -->
                 <?php if ($is_edit): ?>
                 <div class="gcc-card">
-                    <div class="gcc-card-header">🔄 YouTube Playlist Sync</div>
+                    <div class="gcc-card-header">YouTube Playlist Sync</div>
                     <div class="gcc-card-body">
                         <?php if (!$api_key): ?>
                         <div class="gcc-editor-notice gcc-notice-warning">
-                            ⚠️ No YouTube API key set. <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add one in Settings →</a>
+                            No YouTube API key set. <a href="<?php echo admin_url('admin.php?page=sermon-suite-settings'); ?>">Add one in Settings →</a>
                         </div>
                         <?php endif; ?>
                         <p style="margin:0 0 10px;font-size:0.85rem;color:#555;line-height:1.5;">
@@ -985,7 +980,7 @@ function ss_render_series_editor() {
                                    value="<?php echo esc_attr($playlist); ?>"
                                    placeholder="https://www.youtube.com/playlist?list=PL…" />
                             <button type="button" id="gcc-sync-btn" class="gcc-sync-btn" data-series="<?php echo $post_id; ?>" <?php echo !$api_key?'disabled':'';?>>
-                                🔄 Sync Now
+                                Sync Now
                             </button>
                             <span class="spinner" id="gcc-sync-spin" style="float:none;display:none;margin-top:4px;"></span>
                         </div>
@@ -1001,7 +996,7 @@ function ss_render_series_editor() {
                 <!-- Sermons in this series -->
                 <?php if (!empty($sermons)): ?>
                 <div class="gcc-card">
-                    <div class="gcc-card-header">📋 Messages in This Series <span style="font-weight:400;text-transform:none;letter-spacing:0;">(<?php echo count($sermons); ?>)</span></div>
+                    <div class="gcc-card-header">Messages in This Series <span style="font-weight:400;text-transform:none;letter-spacing:0;">(<?php echo count($sermons); ?>)</span></div>
                     <div class="gcc-sermon-list">
                         <?php foreach ($sermons as $s):
                             $s_date = ss_format_sermon_date(get_post_meta($s->ID,'_ss_sermon_date',true));
@@ -1039,7 +1034,7 @@ function ss_render_series_editor() {
 
                 <!-- Dates -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">📅 Dates</div>
+                    <div class="gcc-sidebar-card-header">Dates</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">Start Date</label>
@@ -1054,7 +1049,7 @@ function ss_render_series_editor() {
 
                 <!-- Images -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🖼 Images</div>
+                    <div class="gcc-sidebar-card-header">Images</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">Thumbnail <span class="gcc-label-hint">600×338, used in cards</span></label>
@@ -1062,7 +1057,7 @@ function ss_render_series_editor() {
                                 <?php if ($img_sm): ?>
                                 <img src="<?php echo esc_url($img_sm); ?>" id="gcc-preview-sm" />
                                 <?php else: ?>
-                                <div class="gcc-img-well-empty" id="gcc-well-sm-empty"><span>🖼</span>Click to upload</div>
+                                <div class="gcc-img-well-empty" id="gcc-well-sm-empty"><span aria-hidden="true">+</span>Click to upload</div>
                                 <?php endif; ?>
                             </div>
                             <input type="hidden" id="gcc-img-sm" value="<?php echo esc_attr($img_sm); ?>" />
@@ -1077,7 +1072,7 @@ function ss_render_series_editor() {
                                 <?php if ($img_lg): ?>
                                 <img src="<?php echo esc_url($img_lg); ?>" id="gcc-preview-lg" />
                                 <?php else: ?>
-                                <div class="gcc-img-well-empty" id="gcc-well-lg-empty"><span>🖼</span>Click to upload</div>
+                                <div class="gcc-img-well-empty" id="gcc-well-lg-empty"><span aria-hidden="true">+</span>Click to upload</div>
                                 <?php endif; ?>
                             </div>
                             <input type="hidden" id="gcc-img-lg" value="<?php echo esc_attr($img_lg); ?>" />
@@ -1091,7 +1086,7 @@ function ss_render_series_editor() {
 
                 <!-- Category -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">📂 Category</div>
+                    <div class="gcc-sidebar-card-header">Category</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">Series Category</label>
@@ -1118,7 +1113,7 @@ function ss_render_series_editor() {
 
                 <!-- Campus -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">🏛 Campus</div>
+                    <div class="gcc-sidebar-card-header">Campus</div>
                     <div class="gcc-sidebar-card-body">
                         <div class="gcc-field">
                             <label class="gcc-label">Campus</label>
@@ -1148,7 +1143,7 @@ function ss_render_series_editor() {
 
                 <!-- Options -->
                 <div class="gcc-sidebar-card">
-                    <div class="gcc-sidebar-card-header">⚙️ Options</div>
+                    <div class="gcc-sidebar-card-header">Options</div>
                     <div class="gcc-sidebar-card-body">
                         <label class="gcc-toggle-label">
                             <input type="checkbox" id="gcc-featured" <?php checked($featured,'1'); ?> />
@@ -1199,14 +1194,14 @@ function ss_render_series_editor() {
             e.stopPropagation();
             var f=$(this).data('field'), w=$(this).data('well'), em=$(this).data('empty');
             $('#'+f).val('');
-            $('#'+w).html('<div class="gcc-img-well-empty" id="'+em+'"><span>🖼</span>Click to upload</div>');
+            $('#'+w).html('<div class="gcc-img-well-empty" id="'+em+'"><span aria-hidden="true">+</span>Click to upload</div>');
             $(this).remove();
         });
 
         // Sync
         $('#gcc-sync-btn').on('click', function(){
             var playlist=$('#gcc-playlist').val().trim();
-            if (!playlist) { alert('Enter a playlist URL.'); return; }
+            if (!playlist) { ssFieldError($('#gcc-playlist'), 'Enter a playlist URL.'); return; }
             $(this).prop('disabled',true);
             $('#gcc-sync-spin').show();
             $('#gcc-sync-log').empty().hide();

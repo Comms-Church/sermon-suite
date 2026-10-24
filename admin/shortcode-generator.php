@@ -7,7 +7,7 @@ function sermon_suite_shortcode_generator_page() {
     $all_pages    = get_posts(['post_type'=>'page','posts_per_page'=>-1,'orderby'=>'title','order'=>'ASC','post_status'=>'publish']);
     ?>
     <div class="wrap gcc-admin-wrap gcc-sc-generator">
-        <h1>⚡ Shortcode Generator</h1>
+        <h1>Shortcode Generator</h1>
         <p>Pick what you want to display, configure the options, and copy the shortcode into any page or your page builder element.</p>
 
         <div class="gcc-sc-layout">
@@ -333,9 +333,9 @@ function sermon_suite_shortcode_generator_page() {
                     <div class="gcc-sc-output-label">Your Shortcode</div>
                     <div class="gcc-sc-output" id="gcc-sc-output"><code>[ss_sermon_archive]</code></div>
                     <button id="gcc-sc-copy" class="button button-primary gcc-sc-copy-btn">
-                        📋 Copy Shortcode
+                        Copy Shortcode
                     </button>
-                    <div id="gcc-sc-copied" style="display:none;color:#065f46;font-weight:600;font-size:0.85rem;margin-top:8px;">✅ Copied to clipboard!</div>
+                    <div id="gcc-sc-copied" style="display:none;color:#065f46;font-weight:600;font-size:0.85rem;margin-top:8px;">Copied to clipboard!</div>
                 </div>
 
                 <div class="gcc-sc-usage-card">
@@ -347,7 +347,7 @@ function sermon_suite_shortcode_generator_page() {
                         <li>Save and view the page</li>
                     </ol>
                     <p style="margin-top:10px;font-size:0.82rem;color:#555;background:#eff6ff;padding:10px 12px;border-radius:5px;border-left:3px solid #2563eb;">
-                        💡 <strong>Gutenberg users:</strong> Search "Sermon Suite" in the block inserter — no shortcodes needed.
+                        <strong>Gutenberg users:</strong> Search "Sermon Suite" in the block inserter — no shortcodes needed.
                     </p>
                 </div>
 
@@ -420,7 +420,7 @@ function sermon_suite_shortcode_generator_page() {
         font-weight: 600;
         color: #666;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: background-color 0.15s, border-color 0.15s, color 0.15s;
         white-space: nowrap;
     }
     .gcc-sc-tab:hover { color: #2563eb; }

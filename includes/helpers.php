@@ -171,16 +171,29 @@ function ss_get_sermon_resources( $sermon_id ) {
 }
 
 /**
+ * Inline SVG icon, hidden from screen readers. One drawn icon set so the
+ * front end never mixes SVGs with OS-dependent emoji.
+ */
+function ss_icon( $name, $size = 14 ) {
+    $paths = [
+        'pdf'         => '<path d="M3 2h6l3 3v9H3V2z M9 2v3h3"/>',
+        'devotional'  => '<path d="M7 1v8M4 6l3 3 3-3M2 11h10"/>',
+        'notes'       => '<path d="M2 2h10v10H2z M5 5h4M5 8h2"/>',
+        'link'        => '<path d="M5.5 8.5L8.5 5.5M7 4l1.5-1.5a2.1 2.1 0 013 3L10 7M7 10l-1.5 1.5a2.1 2.1 0 01-3-3L4 7"/>',
+        'book'        => '<path d="M1.5 2.5h3.5A2 2 0 017 4.5v7a1.5 1.5 0 00-1.5-1.5h-4z M12.5 2.5H9A2 2 0 007 4.5v7a1.5 1.5 0 011.5-1.5h4z"/>',
+        'play'        => '<path d="M4 2.5v9l7.5-4.5z" fill="currentColor"/>',
+        'arrow-right' => '<path d="M2.5 7h9M8 3.5L11.5 7 8 10.5"/>',
+        'arrow-left'  => '<path d="M11.5 7h-9M6 3.5L2.5 7 6 10.5"/>',
+    ];
+    $p = $paths[ $name ] ?? $paths['link'];
+    return '<svg class="ss-icon" width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
+}
+
+/**
  * Icon for a resource type.
  */
 function ss_resource_icon( $type ) {
-    $icons = [
-        'pdf'        => '📄',
-        'devotional' => '📖',
-        'notes'      => '📝',
-        'link'       => '🔗',
-    ];
-    return $icons[$type] ?? '🔗';
+    return ss_icon( in_array( $type, [ 'pdf', 'devotional', 'notes', 'link' ], true ) ? $type : 'link' );
 }
 
 /**

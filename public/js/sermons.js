@@ -10,10 +10,16 @@
         var expanded = $btn.attr('aria-expanded') === 'true';
         $btn.attr('aria-expanded', String(!expanded));
         var $body = $btn.next('.gcc-notes-body, .ss-notes-body');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (expanded) {
-            $body.attr('hidden', '');
+            // Play the close animation, then hide. Reduced motion has no
+            // animation (so no animationend) — hide straight away.
+            if (reduce) { $body.attr('hidden', ''); return; }
+            $body.addClass('is-closing').one('animationend', function() {
+                $body.removeClass('is-closing').attr('hidden', '');
+            });
         } else {
-            $body.removeAttr('hidden');
+            $body.removeClass('is-closing').off('animationend').removeAttr('hidden');
         }
     });
 
