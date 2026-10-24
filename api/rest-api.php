@@ -11,6 +11,29 @@ function ss_rest_clamp_per_page( $value ) {
     return max( 1, min( 100, absint( $value ) ) );
 }
 
+/**
+ * Fetch a post for a public endpoint, or null if an anonymous caller has no
+ * business seeing it.
+ *
+ * The list endpoints filter on post_status, but the single-item routes look a
+ * post up by id — so without this they would hand out drafts, pending review,
+ * private and password-protected sermons to anyone who counted upwards through
+ * the ids. Callers return a plain 404 for null so the response does not confirm
+ * that a hidden post exists at that id.
+ */
+function ss_rest_get_public_post( $id, $post_type ) {
+    $post = get_post( (int) $id );
+
+    if ( ! $post || $post->post_type !== $post_type ) {
+        return null;
+    }
+    if ( $post->post_status !== 'publish' || $post->post_password !== '' ) {
+        return null;
+    }
+
+    return $post;
+}
+
 function sermon_suite_register_rest_routes() {
     $ns = 'sermon-suite/v1';
 
@@ -150,8 +173,8 @@ function ss_rest_get_series( $request ) {
 }
 
 function ss_rest_get_single_series( $request ) {
-    $post = get_post( (int) $request['id'] );
-    if ( ! $post || $post->post_type !== 'ss_series' ) {
+    $post = ss_rest_get_public_post( $request['id'], 'ss_series' );
+    if ( ! $post ) {
         return new WP_Error('not_found', 'Series not found', ['status' => 404]);
     }
     $data = ss_format_series_for_api($post);
@@ -248,8 +271,8 @@ function ss_rest_get_sermons( $request ) {
 }
 
 function ss_rest_get_single_sermon( $request ) {
-    $post = get_post( (int) $request['id'] );
-    if ( ! $post || $post->post_type !== 'ss_sermon' ) {
+    $post = ss_rest_get_public_post( $request['id'], 'ss_sermon' );
+    if ( ! $post ) {
         return new WP_Error('not_found', 'Sermon not found', ['status' => 404]);
     }
     return rest_ensure_response( ss_format_sermon_for_api($post) );

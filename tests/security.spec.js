@@ -90,3 +90,30 @@ test('the public sermons endpoint caps page size', async ({ page }) => {
   const one = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=1')).json();
   expect(one.length).toBe(1);
 });
+
+test('an unpublished sermon is not readable through the public single-sermon route', async ({ browser, baseURL, page }) => {
+  // The list route always filtered on post_status, but /sermons/{id} looked the
+  // post up by id alone — so counting upwards through the ids handed anonymous
+  // callers every draft and pending sermon on the site.
+  const title = `Unannounced Series Reveal ${Date.now()}`;
+  const nonce = await editorNonce(page);
+  const saved = await (await saveSermon(page, { nonce, post_id: '0', title, status: 'draft' })).json();
+  expect(saved.success, JSON.stringify(saved)).toBe(true);
+  const id = saved.data.post_id;
+
+  // An administrator can still see it through WordPress's own edit context…
+  await page.goto('/wp-admin/admin.php?page=sermon-suite-import');
+  const rest = await page.evaluate(() => window.sermonSuiteAdmin?.restNonce);
+  const draft = await (await page.request.get(
+    `/wp-json/wp/v2/ss_sermon/${id}?context=edit`, { headers: { 'X-WP-Nonce': rest } }
+  )).json();
+  expect(draft.status).toBe('draft');
+
+  // …but a logged-out visitor gets a flat 404, which also keeps the response
+  // from confirming that something exists at that id.
+  const anon = await browser.newContext({ baseURL, storageState: { cookies: [], origins: [] } });
+  const res = await anon.request.get(`/wp-json/sermon-suite/v1/sermons/${id}`);
+  expect(res.status()).toBe(404);
+  expect(JSON.stringify(await res.json())).not.toContain(title);
+  await anon.close();
+});
