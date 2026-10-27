@@ -108,12 +108,22 @@ function sermon_suite_shortcode_generator_page() {
                 <!-- ── Hero ── -->
                 <div class="gcc-sc-panel" id="gcc-tab-hero">
                     <h3>Latest Message Hero</h3>
-                    <p class="gcc-sc-desc">A full-width cinematic banner showing your most recent sermon — auto-updates every time you publish a new one. Great at the top of your sermons page.</p>
+                    <p class="gcc-sc-desc">A full-width banner showing your most recent sermon, with its thumbnail beside the title and a button straight to the discussion guide — auto-updates every time you publish a new one. Great at the top of your sermons page.</p>
                     <div class="gcc-sc-fields">
                         <div class="gcc-sc-field">
                             <label>Label Text</label>
                             <input type="text" data-param="label" data-sc="ss_latest_hero"
                                    placeholder="Latest Message" value="Latest Message" class="gcc-sc-input" />
+                        </div>
+                        <div class="gcc-sc-field">
+                            <label>Watch Button Text</label>
+                            <input type="text" data-param="watch_label" data-sc="ss_latest_hero"
+                                   placeholder="Watch the Message" value="Watch the Message" class="gcc-sc-input" />
+                        </div>
+                        <div class="gcc-sc-field">
+                            <label>Discussion Guide Button Text</label>
+                            <input type="text" data-param="guide_label" data-sc="ss_latest_hero"
+                                   placeholder="Discussion Guide" value="Discussion Guide" class="gcc-sc-input" />
                         </div>
                     </div>
                 </div>
@@ -472,7 +482,7 @@ function sermon_suite_shortcode_generator_page() {
         var defaults = {
             ss_sermon_archive: { layout:'grid', columns:'3', show_filter:'true', featured_first:'true', count:'-1', sermons_per_series:'5', category:'', campus:'' },
             ss_message_list:   { layout:'list', columns:'3', per_page:'12', campus:'', topic:'', order:'DESC', show_filter:'true' },
-            ss_latest_hero:    { label:'Latest Message' },
+            ss_latest_hero:    { label:'Latest Message', watch_label:'Watch the Message', guide_label:'Discussion Guide' },
             ss_series_grid:    { columns:'3', count:'-1', featured:'false', category:'' },
             ss_sermon_player:  { id:'' },
             ss_related_sermons:{ id:'', count:'4' },
