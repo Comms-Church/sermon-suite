@@ -4,6 +4,10 @@
 
 A modern WordPress sermon library plugin. Organize sermons by series, embed YouTube videos, filter by topic, link scripture to Bible Gateway, and manage downloadable resources — all from a purpose-built admin interface.
 
+## Pay what's fair
+
+This plugin is free so churches can spend less on their websites. If you use it in paid work — building or managing church websites for a fee — we ask that you [pay what you think is fair](https://buy.stripe.com/00w5kD8BF21R6SigP62B201). There are no license keys and no checks; it's the honor system. It keeps the plugins maintained and free for everyone else.
+
 ---
 
 ## Features
