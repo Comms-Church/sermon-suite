@@ -14,37 +14,41 @@ while ( have_posts() ) : the_post();
     $topics    = wp_get_post_terms($series_id, 'ss_topic', ['fields' => 'all']);
     ?>
     <main class="gcc-single-series" id="gcc-main">
-        <!-- Series Hero -->
-        <div class="gcc-series-hero" <?php if ($img_lg) echo 'style="background-image:url(' . esc_url($img_lg) . ')"'; ?>>
-            <div class="gcc-series-hero-overlay">
-                <div class="gcc-series-hero-content">
-                    <a href="<?php echo esc_url( sermon_suite_archive_url() ); ?>" class="gcc-back-link-hero"><?php echo ss_icon( 'arrow-left', 12 ); ?> All Series</a>
-                    <h1><?php the_title(); ?></h1>
-                    <div class="gcc-series-hero-meta">
-                        <?php if ($start) echo '<span>' . ss_format_sermon_date($start) . ($end ? ' – ' . ss_format_sermon_date($end) : '') . '</span>'; ?>
-                        <span><?php echo count($sermons); ?> messages</span>
+        <div class="gcc-series-body gcc-single-wrap">
+
+            <a href="<?php echo esc_url( sermon_suite_archive_url() ); ?>" class="ss-back-link"><?php echo ss_icon( 'arrow-left', 12 ); ?> All Series</a>
+
+            <?php /* Artwork in its own frame beside the title — series art usually
+                     carries its own title type, so nothing is laid over it. */ ?>
+            <header class="gcc-series-header<?php echo $img_lg ? '' : ' gcc-series-header--no-art'; ?>">
+                <?php if ($img_lg) : ?>
+                <div class="gcc-series-art"><img src="<?php echo esc_url($img_lg); ?>" alt="" /></div>
+                <?php endif; ?>
+                <div class="gcc-series-intro">
+                    <h1 class="gcc-series-page-title"><?php the_title(); ?></h1>
+                    <div class="gcc-series-page-meta">
+                        <?php if ($start) echo '<span>' . esc_html( ss_format_sermon_date($start) . ($end ? ' – ' . ss_format_sermon_date($end) : '') ) . '</span>'; ?>
+                        <span><?php echo count($sermons); ?> message<?php echo count($sermons) === 1 ? '' : 's'; ?></span>
                     </div>
+                    <?php if (get_the_content()) : ?>
+                    <div class="gcc-series-description">
+                        <?php the_content(); ?>
+                    </div>
+                    <?php endif; ?>
                     <?php if (!empty($topics)) : ?>
-                    <div class="gcc-series-hero-topics">
+                    <div class="ss-topic-chips gcc-series-topics">
                         <?php foreach ($topics as $t) : ?>
-                            <a href="<?php echo get_term_link($t); ?>" class="gcc-topic-badge-light">
-                                <?php echo esc_html($t->name); ?>
-                            </a>
+                            <a href="<?php echo esc_url( get_term_link($t) ); ?>" class="ss-topic-chip"><?php echo esc_html($t->name); ?></a>
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
+                    <?php if (!empty($sermons)) : ?>
+                    <a href="<?php echo esc_url( get_permalink($sermons[0]->ID) ); ?>" class="gcc-hero-watch-btn">
+                        <?php echo ss_icon( 'play', 12 ); ?> Watch the Series
+                    </a>
+                    <?php endif; ?>
                 </div>
-            </div>
-        </div>
-
-        <div class="gcc-series-body gcc-single-wrap">
-
-            <!-- Series description -->
-            <?php if (get_the_content()) : ?>
-            <div class="gcc-series-description">
-                <?php the_content(); ?>
-            </div>
-            <?php endif; ?>
+            </header>
 
             <!-- Sermons list -->
             <?php if (!empty($sermons)) : ?>

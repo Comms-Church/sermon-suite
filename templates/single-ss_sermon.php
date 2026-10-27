@@ -23,14 +23,12 @@ while ( have_posts() ) : the_post();
     // Series data
     $series       = $series_id ? get_post($series_id) : null;
     $series_title = $series ? get_the_title($series) : '';
-    $series_img   = $series_id ? ( ss_get_series_image($series_id, 'sm') ?: ss_get_series_image($series_id, 'lg') ) : '';
     $series_count = $series_id ? count(ss_get_series_sermons($series_id)) : 0;
-    $series_start = $series_id ? get_post_meta($series_id, '_ss_series_start_date', true) : '';
 
     // Prev / next within series
     $prev = null; $next = null;
+    $siblings = $series_id ? ss_get_series_sermons($series_id) : [];
     if ( $series_id && $order ) {
-        $siblings = ss_get_series_sermons($series_id);
         foreach ( $siblings as $sib ) {
             $o = (int) get_post_meta($sib->ID, '_ss_series_order', true);
             if ( $o === $order - 1 ) $prev = $sib;
@@ -54,6 +52,24 @@ while ( have_posts() ) : the_post();
                 <!-- ── MAIN COLUMN ── -->
                 <div class="ss-sermon-main">
 
+                    <!-- Title first, then the video (wayfinding: what am I watching?) -->
+                    <?php if ($series) : ?>
+                    <p class="ss-sermon-kicker">
+                        <a href="<?php echo esc_url(get_permalink($series_id)); ?>"><?php echo esc_html($series_title); ?></a><?php if ($order && $series_count) : ?> <span class="ss-byline-sep">·</span> Message <?php echo (int) $order; ?> of <?php echo (int) $series_count; ?><?php endif; ?>
+                    </p>
+                    <?php endif; ?>
+                    <!-- Title + byline -->
+                    <h1 class="ss-sermon-title"><?php the_title(); ?></h1>
+                    <div class="ss-sermon-byline">
+                        <?php if (!empty($speakers)) : ?>
+                            <span class="ss-byline-speaker"><?php echo esc_html(implode(', ', $speakers)); ?></span>
+                        <?php endif; ?>
+                        <?php if ($date) : ?>
+                            <?php if (!empty($speakers)) echo '<span class="ss-byline-sep">·</span>'; ?>
+                            <span class="ss-byline-date"><?php echo esc_html($date); ?></span>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- Video -->
                     <?php if ($youtube_id) : ?>
                     <div class="ss-video-wrap">
@@ -68,28 +84,22 @@ while ( have_posts() ) : the_post();
                     <!-- Spotify -->
                     <?php echo ss_spotify_embed_html( $sermon_id ); ?>
 
-                    <!-- Title + byline -->
-                    <h1 class="ss-sermon-title"><?php the_title(); ?></h1>
-                    <div class="ss-sermon-byline">
-                        <?php if (!empty($speakers)) : ?>
-                            <span class="ss-byline-speaker"><?php echo esc_html(implode(', ', $speakers)); ?></span>
-                        <?php endif; ?>
-                        <?php if ($date) : ?>
-                            <?php if (!empty($speakers)) echo '<span class="ss-byline-sep">·</span>'; ?>
-                            <span class="ss-byline-date"><?php echo esc_html($date); ?></span>
-                        <?php endif; ?>
-                        <?php if ($order && $series_count) : ?>
-                            <span class="ss-byline-sep">·</span>
-                            <span class="ss-byline-order">Message <?php echo $order; ?> of <?php echo $series_count; ?></span>
-                        <?php endif; ?>
-                    </div>
-
                     <!-- Description -->
                     <?php if (get_the_content()) : ?>
+                    <h2 class="ss-section-label">About This Message</h2>
                     <div class="ss-sermon-desc">
                         <?php the_content(); ?>
                     </div>
                     <?php endif; ?>
+
+                    <div class="ss-sermon-actions">
+                        <button type="button" class="ss-share-btn"
+                                data-title="<?php echo esc_attr( get_the_title() ); ?>"
+                                data-url="<?php echo esc_url( get_permalink() ); ?>">
+                            <?php echo ss_icon( 'share' ); ?> Share
+                        </button>
+                        <span class="ss-share-status" role="status" aria-live="polite"></span>
+                    </div>
 
                     <!-- Sermon Notes toggle -->
                     <?php if ($notes) : ?>
@@ -165,16 +175,46 @@ while ( have_posts() ) : the_post();
                     </nav>
                     <?php endif; ?>
 
-                    <!-- Related sermons -->
-                    <?php
-                    $related = ss_sc_related_sermons(['id' => $sermon_id, 'count' => 4]);
-                    if ($related) echo $related;
-                    ?>
 
                 </div><!-- .ss-sermon-main -->
 
                 <!-- ── SIDEBAR ── -->
                 <div class="ss-sermon-sidebar">
+
+                    <!-- Messages in this series -->
+                    <?php if ($series && $siblings) :
+                        $pos = 0;
+                        foreach ($siblings as $i => $sib) { if ((int) $sib->ID === (int) $sermon_id) { $pos = $i + 1; break; } }
+                    ?>
+                    <nav class="ss-sidebar-card ss-series-card" aria-labelledby="ss-series-list-head">
+                        <div class="ss-sidebar-card-head" id="ss-series-list-head">
+                            Messages in This Series
+                            <?php if ($pos) : ?><span class="ss-series-pos"><?php echo (int) $pos; ?>/<?php echo count($siblings); ?></span><?php endif; ?>
+                        </div>
+                        <ol class="ss-series-list">
+                            <?php foreach ($siblings as $i => $sib) :
+                                $is_current = (int) $sib->ID === (int) $sermon_id;
+                                $sib_speakers = wp_get_post_terms($sib->ID, 'ss_speaker', ['fields' => 'names']);
+                            ?>
+                            <li>
+                                <a href="<?php echo esc_url(get_permalink($sib->ID)); ?>"
+                                   class="ss-series-item<?php echo $is_current ? ' is-current' : ''; ?>"
+                                   <?php if ($is_current) echo 'aria-current="page"'; ?>>
+                                    <span class="ss-series-num" aria-hidden="true"><?php echo $is_current ? ss_icon( 'play', 10 ) : (int) ($i + 1); ?></span>
+                                    <span class="ss-series-item-text">
+                                        <span class="ss-series-item-title"><?php echo esc_html(get_the_title($sib->ID)); ?></span>
+                                        <?php if (!empty($sib_speakers) && !is_wp_error($sib_speakers)) : ?>
+                                        <span class="ss-series-item-meta"><?php echo esc_html(implode(', ', $sib_speakers)); ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                </a>
+                            </li>
+                            <?php endforeach; ?>
+                        </ol>
+                        <a href="<?php echo esc_url(get_permalink($series_id)); ?>" class="ss-view-series-link">View full series</a>
+                    </nav>
+                    <?php endif; ?>
+
 
                     <!-- Scripture -->
                     <?php if ($scripture) : ?>
@@ -242,40 +282,16 @@ while ( have_posts() ) : the_post();
                     </div>
                     <?php endif; ?>
 
-                    <!-- Series info -->
-                    <?php if ($series) : ?>
-                    <div class="ss-sidebar-card">
-                        <div class="ss-sidebar-card-head">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="1" y="3" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 6l2 1.5L9 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Series
-                        </div>
-                        <div class="ss-sidebar-card-body">
-                            <?php if ($series_img) : ?>
-                            <a href="<?php echo esc_url(get_permalink($series_id)); ?>" class="ss-series-thumb-link">
-                                <img src="<?php echo esc_url($series_img); ?>"
-                                     alt="<?php echo esc_attr($series_title); ?>"
-                                     class="ss-series-thumb" loading="lazy" />
-                            </a>
-                            <?php endif; ?>
-                            <p class="ss-series-name">
-                                <a href="<?php echo esc_url(get_permalink($series_id)); ?>">
-                                    <?php echo esc_html($series_title); ?>
-                                </a>
-                            </p>
-                            <p class="ss-series-meta">
-                                <?php echo $series_count; ?> message<?php echo $series_count !== 1 ? 's' : ''; ?>
-                                <?php if ($series_start) echo ' · ' . ss_format_sermon_date($series_start); ?>
-                            </p>
-                            <a href="<?php echo esc_url(get_permalink($series_id)); ?>" class="ss-view-series-btn">
-                                View full series
-                            </a>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
                 </div><!-- .ss-sermon-sidebar -->
 
             </div><!-- .ss-sermon-layout -->
+
+            <!-- Related sermons: full width below both columns, so on phones the
+                 series list and resources come before them, not after. -->
+            <?php
+            $related = ss_sc_related_sermons(['id' => $sermon_id, 'count' => 4]);
+            if ($related) echo $related;
+            ?>
         </div><!-- .ss-sermon-wrap -->
     </main>
     <?php
