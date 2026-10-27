@@ -23,4 +23,18 @@
         }
     });
 
+    // ── Deep links: /sermon/#discussion-guide opens that section ─────────────
+    function openFromHash() {
+        var id = window.location.hash.slice(1);
+        if (!/^[a-z-]+$/.test(id)) return;
+        var $block = $('#' + id + '.ss-notes-block');
+        if (!$block.length) return;
+        var $btn = $block.children('.ss-notes-toggle');
+        if ($btn.attr('aria-expanded') !== 'true') $btn.trigger('click');
+        $block[0].scrollIntoView({ block: 'start' });
+        $btn.trigger('focus');
+    }
+    $(openFromHash);
+    $(window).on('hashchange', openFromHash);
+
 })(jQuery);

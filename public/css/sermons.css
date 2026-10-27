@@ -561,28 +561,68 @@
 
 /* ═══════════════════════════════════════════════════════════════════
    LATEST MESSAGE HERO
+   The thumbnail gets its own 16:9 frame and the text a solid panel beside
+   it. Custom YouTube thumbnails carry their own title type, so nothing is
+   ever laid over the image. Stacks (image first) when the block is narrow.
    ═══════════════════════════════════════════════════════════════════ */
 .gcc-hero-wrap {
-    position: relative;
-    min-height: 420px;
-    background-size: cover;
-    background-position: center;
-    background-color: var(--gcc-accent);
-    display: flex;
-    align-items: flex-end;
+    container-type: inline-size;
     margin-bottom: 40px;
-    border-radius: var(--gcc-radius);
+}
+.gcc-hero-card {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-areas: "body media";
+    align-items: center;
+    background: var(--gcc-bg-alt);
+    border-radius: var(--gcc-radius-lg);
     overflow: hidden;
 }
-.gcc-hero-overlay {
-    width: 100%;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.15) 100%);
-    padding: 48px 0 36px;
+.gcc-hero-card--no-media { grid-template-columns: 1fr; grid-template-areas: "body"; }
+
+.gcc-hero-media {
+    grid-area: media;
+    position: relative;
+    display: block;
+    align-self: stretch;
+    background: #000;
 }
-.gcc-hero-inner {
-    max-width: 760px;
-    padding: 0 32px;
-    color: #fff;
+.gcc-hero-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    transition: opacity var(--gcc-transition);
+}
+.gcc-hero-media:hover img { opacity: 0.92; }
+/* Play badge only on hover: at rest nothing sits on the artwork, which may
+   carry its own title anywhere in the frame. The Watch button is the cue. */
+.gcc-hero-play {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--gcc-radius-pill);
+    background: var(--gcc-accent);
+    color: var(--gcc-button-text, #fff);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    padding-left: 3px; /* optical centring of the triangle */
+    opacity: 0;
+    transition: opacity var(--gcc-transition);
+}
+@media (hover: hover) {
+    .gcc-hero-media:hover .gcc-hero-play { opacity: 1; }
+}
+
+.gcc-hero-body {
+    grid-area: body;
+    padding: 36px 40px;
+    color: var(--gcc-text);
 }
 .gcc-hero-badge {
     display: inline-block;
@@ -594,38 +634,43 @@
     color: var(--gcc-button-text, #fff);
     padding: 4px 12px;
     border-radius: var(--gcc-radius-sm);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 .gcc-hero-series {
     font-size: calc(var(--gcc-fs, 17px) * 0.9);
     font-weight: 600;
-    color: rgba(255,255,255,0.92);
-    margin-bottom: 6px;
+    color: var(--gcc-text-muted);
+    margin-bottom: 4px;
 }
-.gcc-hero-series a { color: #fff; text-decoration: none; }
-.gcc-hero-series a:hover { text-decoration: underline; }
+.gcc-hero-series a { color: inherit; text-decoration: none; }
+.gcc-hero-series a:hover { color: var(--gcc-accent); text-decoration: underline; }
 .gcc-hero-title {
-    font-size: calc(var(--gcc-fs, 17px) * 2);
+    font-size: calc(var(--gcc-fs, 17px) * 1.9);
     font-weight: 800;
+    line-height: 1.1;
     margin: 0 0 10px;
-    line-height: 1.2;
 }
-.gcc-hero-title a { color: #fff; text-decoration: none; }
-.gcc-hero-title a:hover { opacity: 0.9; }
+.gcc-hero-title a { color: var(--gcc-text); text-decoration: none; }
+.gcc-hero-title a:hover { color: var(--gcc-accent); }
 .gcc-hero-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    align-items: center;
+    gap: 6px 14px;
     font-size: calc(var(--gcc-fs, 17px) * 0.85);
-    color: rgba(255,255,255,0.92);
-    margin-bottom: 12px;
+    color: var(--gcc-text-muted);
+    margin-bottom: 14px;
 }
+.gcc-hero-meta span { display: inline-flex; align-items: center; gap: 5px; }
 .gcc-hero-desc {
     font-size: calc(var(--gcc-fs, 17px) * 0.95);
-    color: rgba(255,255,255,0.92);
     line-height: 1.6;
-    margin: 0 0 20px;
-    max-width: 580px;
+    color: var(--gcc-text);
+    margin: 0 0 22px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 .gcc-hero-actions {
     display: flex;
@@ -633,41 +678,52 @@
     gap: 10px;
     align-items: center;
 }
-.gcc-hero-watch-btn {
-    display: inline-block;
-    background: var(--gcc-accent);
-    color: var(--gcc-button-text, #fff) !important;
-    font-size: calc(var(--gcc-fs, 17px) * 0.9);
-    font-weight: 700;
-    padding: 11px 26px;
-    border-radius: var(--gcc-radius-pill);
-    text-decoration: none !important;
-    transition: var(--gcc-transitions);
-    letter-spacing: 0.02em;
-}
-.gcc-hero-watch-btn:hover { opacity: 0.88; }
+.gcc-hero-watch-btn,
 .gcc-hero-resource-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: calc(var(--gcc-fs, 17px) * 0.82);
-    font-weight: 600;
-    padding: 9px 18px;
+    gap: 7px;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 20px;
     border-radius: var(--gcc-radius-pill);
-    border: 1.5px solid rgba(255,255,255,0.5);
-    color: #fff !important;
+    font-size: calc(var(--gcc-fs, 17px) * 0.88);
+    font-weight: 700;
     text-decoration: none !important;
     transition: var(--gcc-transitions);
-    background: rgba(255,255,255,0.12);
+}
+.gcc-hero-watch-btn {
+    background: var(--gcc-accent);
+    color: var(--gcc-button-text, #fff) !important;
+    border: 1.5px solid var(--gcc-accent);
+}
+.gcc-hero-watch-btn:hover { background: color-mix(in srgb, var(--gcc-accent) 88%, #000); }
+.gcc-hero-resource-btn {
+    background: var(--gcc-bg);
+    color: var(--gcc-text) !important;
+    border: 1.5px solid var(--gcc-border);
 }
 .gcc-hero-resource-btn:hover {
-    background: rgba(255,255,255,0.25);
-    border-color: rgba(255,255,255,0.8);
+    border-color: var(--gcc-accent);
+    color: var(--gcc-accent) !important;
 }
-@media (max-width: 600px) {
-    .gcc-hero-title { font-size: calc(var(--gcc-fs, 17px) * 1.5); }
-    .gcc-hero-inner { padding: 0 20px; }
-    .gcc-hero-wrap  { min-height: 340px; }
+
+/* Narrow block (phone, sidebar, narrow column): image on top, text below. */
+@container (max-width: 760px) {
+    .gcc-hero-card {
+        grid-template-columns: 1fr;
+        grid-template-areas: "media" "body";
+    }
+    .gcc-hero-body { padding: 22px 20px 24px; }
+    .gcc-hero-title { font-size: calc(var(--gcc-fs, 17px) * 1.45); }
+    .gcc-hero-desc { -webkit-line-clamp: 4; }
+}
+/* Browsers without container queries fall back to the viewport. */
+@supports not (container-type: inline-size) {
+    @media (max-width: 760px) {
+        .gcc-hero-card { grid-template-columns: 1fr; grid-template-areas: "media" "body"; }
+        .gcc-hero-body { padding: 22px 20px 24px; }
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1686,12 +1742,10 @@
 @media (prefers-contrast: more) {
     .gcc-sermon-card,
     .gcc-series-card { box-shadow: none; border: 1px solid var(--gcc-text); }
-    .gcc-hero-overlay,
     .gcc-series-hero-overlay { background: rgba(0,0,0,0.85); }
-    .gcc-hero-meta,
-    .gcc-hero-series,
-    .gcc-hero-desc,
     .gcc-series-hero-meta { opacity: 1; }
+    .gcc-hero-card { border: 1px solid var(--gcc-text); }
+    .gcc-hero-resource-btn { border-color: var(--gcc-text); }
 }
 
 /* Small chips keep their size but get a finger-sized hit area. */

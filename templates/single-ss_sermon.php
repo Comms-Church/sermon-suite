@@ -93,7 +93,7 @@ while ( have_posts() ) : the_post();
 
                     <!-- Sermon Notes toggle -->
                     <?php if ($notes) : ?>
-                    <div class="ss-notes-block">
+                    <div class="ss-notes-block" id="sermon-notes">
                         <button class="ss-notes-toggle" aria-expanded="false">
                             <span class="ss-notes-toggle-label">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -109,7 +109,7 @@ while ( have_posts() ) : the_post();
 
                     <!-- Discussion Guide -->
                     <?php if ($guide) : ?>
-                    <div class="ss-notes-block">
+                    <div class="ss-notes-block" id="discussion-guide">
                         <button class="ss-notes-toggle" aria-expanded="false">
                             <span class="ss-notes-toggle-label">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 3h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-3 3v-3H3a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
@@ -125,7 +125,7 @@ while ( have_posts() ) : the_post();
 
                     <!-- Transcript -->
                     <?php if ($transcript) : ?>
-                    <div class="ss-notes-block">
+                    <div class="ss-notes-block" id="transcript">
                         <button class="ss-notes-toggle" aria-expanded="false">
                             <span class="ss-notes-toggle-label">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -198,7 +198,7 @@ while ( have_posts() ) : the_post();
 
                     <!-- Resources -->
                     <?php if (!empty($resources)) : ?>
-                    <div class="ss-sidebar-card">
+                    <div class="ss-sidebar-card" id="resources">
                         <div class="ss-sidebar-card-head">
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
                             Resources

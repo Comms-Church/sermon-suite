@@ -677,7 +677,10 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
 add_shortcode( 'ss_latest_hero', 'ss_sc_latest_hero' );
 function ss_sc_latest_hero( $atts ) {
     $atts = shortcode_atts([
-        'label' => 'Latest Message',
+        'label'       => 'Latest Message',
+        'watch_label' => 'Watch the Message',
+        'guide_label' => 'Discussion Guide',
+        'notes_label' => 'Sermon Notes',
     ], $atts);
 
     $sermons = get_posts([
@@ -703,12 +706,32 @@ function ss_sc_latest_hero( $atts ) {
     $scripture  = get_post_meta($sermon_id, '_ss_scripture_ref', true);
     $desc       = get_the_excerpt($sermon_id) ?: wp_trim_words(strip_tags($sermon->post_content), 35);
     $resources  = ss_get_sermon_resources($sermon_id);
+    $permalink  = get_permalink($sermon_id);
+
+    // Point people straight at the discussion guide (or notes) on the sermon
+    // page, so "where's the guide?" has a visible answer on the hero itself.
+    $study = null;
+    if ( get_post_meta($sermon_id, '_ss_discussion_guide', true) ) {
+        $study = [ 'href' => $permalink . '#discussion-guide', 'label' => $atts['guide_label'], 'icon' => 'guide' ];
+    } elseif ( get_post_meta($sermon_id, '_ss_sermon_notes', true) ) {
+        $study = [ 'href' => $permalink . '#sermon-notes', 'label' => $atts['notes_label'], 'icon' => 'notes' ];
+    }
+    $resource_slots = $study ? 1 : 2;
 
     ob_start();
     ?>
-    <div class="gcc-hero-wrap" <?php if ($thumb) echo 'style="background-image:url(' . esc_url($thumb) . ')"'; ?>>
-        <div class="gcc-hero-overlay">
-            <div class="gcc-hero-inner">
+    <?php /* The thumbnail sits in its own frame, never behind the text: custom
+             YouTube thumbnails carry their own titles, and overlaid text clashes
+             with them. Text gets a solid panel so it reads on any artwork. */ ?>
+    <div class="gcc-hero-wrap">
+        <div class="gcc-hero-card<?php echo $thumb ? '' : ' gcc-hero-card--no-media'; ?>">
+            <?php if ($thumb) : ?>
+            <a href="<?php echo esc_url($permalink); ?>" class="gcc-hero-media" tabindex="-1" aria-hidden="true">
+                <img src="<?php echo esc_url($thumb); ?>" alt="" loading="eager" decoding="async" />
+                <span class="gcc-hero-play"><?php echo ss_icon( 'play', 18 ); ?></span>
+            </a>
+            <?php endif; ?>
+            <div class="gcc-hero-body">
                 <div class="gcc-hero-badge"><?php echo esc_html($atts['label']); ?></div>
 
                 <?php if ($series) : ?>
@@ -720,7 +743,7 @@ function ss_sc_latest_hero( $atts ) {
                 <?php endif; ?>
 
                 <h2 class="gcc-hero-title">
-                    <a href="<?php echo get_permalink($sermon_id); ?>">
+                    <a href="<?php echo esc_url($permalink); ?>">
                         <?php echo get_the_title($sermon_id); ?>
                     </a>
                 </h2>
@@ -736,10 +759,15 @@ function ss_sc_latest_hero( $atts ) {
                 <?php endif; ?>
 
                 <div class="gcc-hero-actions">
-                    <a href="<?php echo get_permalink($sermon_id); ?>" class="gcc-hero-watch-btn">
-                        <?php echo ss_icon( 'play', 12 ); ?> Watch Now
+                    <a href="<?php echo esc_url($permalink); ?>" class="gcc-hero-watch-btn">
+                        <?php echo ss_icon( 'play', 12 ); ?> <?php echo esc_html($atts['watch_label']); ?>
                     </a>
-                    <?php foreach ( array_slice($resources, 0, 2) as $r ) : ?>
+                    <?php if ($study) : ?>
+                    <a href="<?php echo esc_url($study['href']); ?>" class="gcc-hero-resource-btn gcc-hero-study-btn">
+                        <?php echo ss_icon( $study['icon'] ); ?> <?php echo esc_html($study['label']); ?>
+                    </a>
+                    <?php endif; ?>
+                    <?php foreach ( array_slice($resources, 0, $resource_slots) as $r ) : ?>
                     <a href="<?php echo esc_url($r['url']); ?>" class="gcc-hero-resource-btn"
                        target="_blank" rel="noopener">
                         <?php echo ss_resource_icon($r['type']); ?> <?php echo esc_html($r['label']); ?>

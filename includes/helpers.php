@@ -184,6 +184,7 @@ function ss_icon( $name, $size = 14 ) {
         'play'        => '<path d="M4 2.5v9l7.5-4.5z" fill="currentColor"/>',
         'arrow-right' => '<path d="M2.5 7h9M8 3.5L11.5 7 8 10.5"/>',
         'arrow-left'  => '<path d="M11.5 7h-9M6 3.5L2.5 7 6 10.5"/>',
+        'guide'       => '<path d="M2.5 2.5h9a1 1 0 011 1v5.5a1 1 0 01-1 1H7l-2.75 2.5V10H2.5a1 1 0 01-1-1V3.5a1 1 0 011-1z"/>',
     ];
     $p = $paths[ $name ] ?? $paths['link'];
     return '<svg class="ss-icon" width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
