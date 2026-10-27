@@ -529,6 +529,15 @@ function sermon_suite_settings_page() {
             <input type="hidden" name="sermon_suite_settings_save" value="1" />
             <?php submit_button('Save Settings'); ?>
         </form>
+        <p style="margin-top:32px;padding-top:16px;border-top:1px solid #dcdcde;color:#646970;max-width:820px;">
+            <?php
+            printf(
+                /* translators: %s: "pay what's fair" link */
+                esc_html__( 'This plugin is free so churches can spend less on their websites. Using it in paid client work? Please %s. It\'s the honor system: no license keys, no checks.', 'sermon-suite' ),
+                '<a href="https://buy.stripe.com/00w5kD8BF21R6SigP62B201" target="_blank" rel="noopener">' . esc_html__( 'pay what\'s fair', 'sermon-suite' ) . '</a>'
+            );
+            ?>
+        </p>
     </div>
 
     <style>
