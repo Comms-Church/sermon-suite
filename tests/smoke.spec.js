@@ -64,6 +64,119 @@ test.describe('Public pages', () => {
   });
 });
 
+test.describe('Fixed theme headers', () => {
+  // Bricks' transparent sticky header is fixed over the top of every page.
+  // Over our templates it covered the back link and swallowed its clicks.
+  test('the sermon page starts below a fixed header laid over it', async ({ page, request }) => {
+    const sermons = await (await request.get('/wp-json/sermon-suite/v1/sermons')).json();
+    await page.goto(sermons[0].permalink || sermons[0].link || `/?p=${sermons[0].id}`);
+    const offset = () => page.evaluate(() =>
+      document.documentElement.style.getPropertyValue('--ss-header-offset'));
+    expect(await offset(), 'no fixed header, so no offset').toBe('');
+
+    await page.evaluate(() => {
+      // Reach 60px into our page, wherever the test theme's own header leaves it.
+      const reach = document.querySelector('.ss-sermon-page').getBoundingClientRect().top + window.scrollY + 60;
+      const h = document.createElement('div');
+      h.style.cssText = `position:fixed;top:0;left:0;right:0;height:${reach}px;z-index:999`;
+      document.body.prepend(h);
+      window.dispatchEvent(new Event('resize'));
+    });
+    await expect.poll(offset).not.toBe('');
+
+    const back = page.locator('.ss-back-link');
+    const onTop = await back.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return el === hit || el.contains(hit);
+    });
+    expect(onTop, 'the header still covers the back link').toBe(true);
+  });
+});
+
+test.describe('Sermon cards', () => {
+  test('a card links straight to its sermon\'s discussion guide', async ({ page, request }) => {
+    const series = await (await request.get('/wp-json/sermon-suite/v1/series')).json();
+    const seed = series.find((s) => (s.title?.rendered || s.title) === 'Test Series: Foundations');
+    await page.goto(seed.permalink || seed.link || `/?p=${seed.id}`);
+
+    const card = page.locator('.gcc-sermon-card', { has: page.locator('.gcc-card-title', { hasText: 'Grace That Holds' }) });
+    const chip = card.locator('.gcc-resource-study');
+    await expect(chip).toHaveText('Discussion Guide');
+    expect(await chip.getAttribute('href')).toMatch(/#discussion-guide$/);
+
+    await chip.click();
+    await expect(page.locator('#discussion-guide .ss-notes-toggle')).toHaveAttribute('aria-expanded', 'true');
+  });
+});
+
+test.describe('Messages in this series', () => {
+  // The list scrolls inside its card, so in a long series the current message
+  // used to sit out of sight below the first few. Builds a 12-message series
+  // (back-dated so it never takes the [ss_latest_hero] slot), numbers it with
+  // Bulk Edit the way a church would, then opens message 10.
+  test('a long series opens scrolled to the current message, without moving the page', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto('/wp-admin/admin.php?page=sermon-suite-import');
+    const nonce = await page.evaluate(() => window.sermonSuiteAdmin?.restNonce);
+    expect(nonce).toBeTruthy();
+
+    const runId = Date.now();
+    const seriesName = `Long Series ${runId}`;
+    const titles = Array.from({ length: 12 }, (_, i) => `Long Series ${runId} Message ${i + 1}`);
+    const ids = [];
+    for (const [i, title] of titles.entries()) {
+      const res = await page.request.post('/wp-json/sermon-suite/v1/sermons/publish', {
+        headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+        // Only the first names the series; it creates it. The rest join via Bulk Edit.
+        data: { sermon_title: title, date: `2018-01-${String(i + 1).padStart(2, '0')}`,
+                ...(i === 0 ? { series_name: seriesName } : {}) },
+      });
+      expect(res.ok(), `publish ${title} failed: ${res.status()}`).toBe(true);
+      ids.push((await res.json()).post_id);
+    }
+    const all = await (await page.request.get('/wp-json/sermon-suite/v1/sermons?per_page=100')).json();
+    const seriesId = all.find((s) => s.id === ids[0]).series_id;
+    expect(seriesId).toBeGreaterThan(0);
+
+    // Search for this run's titles: other suites leave enough unfiled sermons
+    // to push ours onto page 2 of "No series".
+    await page.goto(`/wp-admin/edit.php?post_type=ss_sermon&post_status=all&ss_series_filter=none&s=${encodeURIComponent(seriesName)}`);
+    for (const title of titles.slice(1)) {
+      // Exact match: "Message 2" is also a substring of "Message 12".
+      await page.locator('#the-list tr', { has: page.locator('.row-title', { hasText: new RegExp(`^${title}$`) }) })
+        .locator('input[type=checkbox]').check();
+    }
+    await page.locator('#bulk-action-selector-top').selectOption('edit');
+    await page.locator('#doaction').click();
+    await page.locator('#bulk-edit select[name="ss_bulk_series"]').selectOption(String(seriesId));
+    await page.locator('#bulk-edit #bulk_edit').click();
+    await page.waitForLoadState('networkidle');
+
+    const listState = () => page.evaluate(() => {
+      const list = document.querySelector('.ss-series-list');
+      const cur = list.querySelector('.is-current').getBoundingClientRect();
+      const box = list.getBoundingClientRect();
+      return { scrollTop: list.scrollTop, scrollable: list.scrollHeight > list.clientHeight,
+               inView: cur.top >= box.top && cur.bottom <= box.bottom, pageY: window.scrollY };
+    });
+
+    await page.goto(`/?p=${ids[9]}`);
+    await expectClean(page);
+    await expect(page.locator('.ss-series-pos')).toHaveText('10/12');
+    let s = await listState();
+    expect(s.scrollable, 'a 12-message list should scroll inside its card').toBe(true);
+    expect(s.inView, 'message 10 should be visible in the list').toBe(true);
+    expect(s.pageY, 'the page itself should not scroll').toBe(0);
+
+    // The first message needs no scrolling at all.
+    await page.goto(`/?p=${ids[0]}`);
+    s = await listState();
+    expect(s.scrollTop).toBe(0);
+    expect(s.inView).toBe(true);
+  });
+});
+
 test.describe('Rich text rendering (notes / guide / transcript)', () => {
   // Sermon Shots returns Markdown; older guides are HTML. Both must render.
   // Opens the sermon page, expands the named collapsible block (they start

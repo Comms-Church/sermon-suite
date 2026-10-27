@@ -603,7 +603,8 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
     $speakers    = wp_get_post_terms($sermon_id, 'ss_speaker', ['fields' => 'names']);
     $scripture   = get_post_meta($sermon_id, '_ss_scripture_ref', true);
     $scrip_url   = get_post_meta($sermon_id, '_ss_scripture_url', true);
-    $resources   = ss_get_sermon_resources($sermon_id);
+    $study       = ss_sermon_study_link($sermon_id);
+    $resources   = ss_resources_without_study(ss_get_sermon_resources($sermon_id), $study);
     $topics      = wp_get_post_terms($sermon_id, 'ss_topic', ['fields' => 'all']);
     $desc        = get_the_excerpt($sermon_id) ?: wp_trim_words(strip_tags(get_post_field('post_content', $sermon_id)), 30);
     ?>
@@ -651,8 +652,13 @@ function ss_render_sermon_card( $sermon_id, $style = 'list' ) {
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
-            <?php if (!empty($resources)) : ?>
+            <?php if ($study || !empty($resources)) : ?>
             <div class="gcc-card-resources">
+                <?php if ($study) : ?>
+                    <a href="<?php echo esc_url($study['href']); ?>" class="gcc-resource-link gcc-resource-study">
+                        <?php echo ss_icon( $study['icon'] ); ?> <?php echo esc_html($study['label']); ?>
+                    </a>
+                <?php endif; ?>
                 <?php foreach ($resources as $r) : ?>
                     <a href="<?php echo esc_url($r['url']); ?>" class="gcc-resource-link gcc-resource-<?php echo esc_attr($r['type']); ?>"
                        target="_blank" rel="noopener">
@@ -708,14 +714,8 @@ function ss_sc_latest_hero( $atts ) {
     $resources  = ss_get_sermon_resources($sermon_id);
     $permalink  = get_permalink($sermon_id);
 
-    // Point people straight at the discussion guide (or notes) on the sermon
-    // page, so "where's the guide?" has a visible answer on the hero itself.
-    $study = null;
-    if ( get_post_meta($sermon_id, '_ss_discussion_guide', true) ) {
-        $study = [ 'href' => $permalink . '#discussion-guide', 'label' => $atts['guide_label'], 'icon' => 'guide' ];
-    } elseif ( get_post_meta($sermon_id, '_ss_sermon_notes', true) ) {
-        $study = [ 'href' => $permalink . '#sermon-notes', 'label' => $atts['notes_label'], 'icon' => 'notes' ];
-    }
+    $study          = ss_sermon_study_link($sermon_id, $atts['guide_label'], $atts['notes_label']);
+    $resources      = ss_resources_without_study($resources, $study);
     $resource_slots = $study ? 1 : 2;
 
     ob_start();

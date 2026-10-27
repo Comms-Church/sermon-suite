@@ -199,6 +199,33 @@ function ss_resource_icon( $type ) {
 }
 
 /**
+ * Link straight to the discussion guide (or, failing that, the notes) on a
+ * sermon's own page, so "where's the guide?" has a visible answer wherever the
+ * sermon is listed. Null when the sermon has neither.
+ */
+function ss_sermon_study_link( $sermon_id, $guide_label = 'Discussion Guide', $notes_label = 'Sermon Notes' ) {
+    $permalink = get_permalink( $sermon_id );
+    if ( get_post_meta( $sermon_id, '_ss_discussion_guide', true ) ) {
+        return [ 'href' => $permalink . '#discussion-guide', 'label' => $guide_label, 'icon' => 'guide' ];
+    }
+    if ( get_post_meta( $sermon_id, '_ss_sermon_notes', true ) ) {
+        return [ 'href' => $permalink . '#sermon-notes', 'label' => $notes_label, 'icon' => 'notes' ];
+    }
+    return null;
+}
+
+/**
+ * Resources minus any that repeat the study link's label: a church that also
+ * attached its guide as a document shouldn't get two "Discussion Guide" chips.
+ */
+function ss_resources_without_study( $resources, $study ) {
+    if ( ! $study ) return $resources;
+    return array_values( array_filter( $resources, function ( $r ) use ( $study ) {
+        return strcasecmp( trim( $r['label'] ), $study['label'] ) !== 0;
+    } ) );
+}
+
+/**
  * Returns the URL of the designated Sermons page.
  * Falls back to /sermons if no page is set.
  */

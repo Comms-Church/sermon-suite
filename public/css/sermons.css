@@ -1016,6 +1016,10 @@
 .ss-sermon-page {
     padding: 28px 0 60px;
 }
+/* --ss-header-offset is set by sermons.js when the theme lays a fixed header
+   over the top of the page (Bricks' transparent sticky header does). */
+.ss-sermon-page, .gcc-single-series, .ss-tax-page { margin-top: var(--ss-header-offset, 0px); }
+.ss-notes-block { scroll-margin-top: var(--ss-header-offset, 0px); }
 .ss-sermon-wrap {
     max-width: 1080px;
     margin: 0 auto;
@@ -1829,6 +1833,7 @@
 .ss-series-card .ss-sidebar-card-head { justify-content: space-between; }
 .ss-series-pos { font-weight: 600; letter-spacing: 0; }
 .ss-series-list {
+    position: relative;  /* offsetTop anchor for scrolling to the current message */
     list-style: none;
     margin: 0;
     padding: 6px 0;
